@@ -2,6 +2,8 @@
 
 한국 삼국시대 배경의 방치형 액션 플랫포머 게임.
 
+> 게임 기획 · 직업 시스템 · 개발 로드맵 등 상세 문서는 [DESIGN.md](./DESIGN.md) 참고.
+
 ## 기술 스택
 
 - **Frontend**: React + Phaser.js (Arcade Physics), Vite
