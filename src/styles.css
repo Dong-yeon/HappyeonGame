@@ -24,8 +24,8 @@ body,
 }
 
 .phaser-mount {
-  width: 960px;
-  height: 540px;
+  width: 1280px;
+  height: 720px;
   max-width: 100%;
 }
 
@@ -35,7 +35,7 @@ body,
   top: 12px;
   left: 50%;
   transform: translateX(-50%);
-  width: 960px;
+  width: 1280px;
   max-width: calc(100% - 24px);
   display: flex;
   align-items: center;

@@ -1,19 +1,13 @@
 import Phaser from 'phaser';
 import Player from '../entities/Player.js';
 import Enemy from '../entities/Enemy.js';
-import {
-  GAME_WIDTH,
-  GAME_HEIGHT,
-  GROUND_Y,
-  GROUND_HEIGHT,
-  ENEMY,
-  OBSTACLE,
-} from '../constants.js';
+import { GAME_WIDTH, GAME_HEIGHT, PLATFORMS, WALL_THICKNESS, ENEMY } from '../constants.js';
 import { playerData } from '../../data/playerData.js';
 
 /**
- * 메인 스테이지 씬 — 무한 횡스크롤 자동 전투
- * 캐릭터는 오른쪽으로 계속 전진하고, 지형/장애물/적은 전방에 계속 생성된다.
+ * 메인 사냥터 씬 — 고정 크기 맵 (메이플스토리 일반 사냥터 방식)
+ * 여러 층의 플랫폼 위에서 적이 리스폰되고, 화랑이 가장 가까운 적을 자동으로 사냥한다.
+ * 카메라 스크롤 없음 / 무한 생성 없음.
  */
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -23,38 +17,47 @@ export default class GameScene extends Phaser.Scene {
   create() {
     this.playerData = playerData;
 
-    // ===== 지형 / 오브젝트 그룹 =====
-    this.grounds = this.physics.add.staticGroup();
-    this.obstacles = this.physics.add.staticGroup();
+    this.platforms = this.physics.add.staticGroup();
+    this.walls = this.physics.add.staticGroup();
     this.enemies = this.add.group({ runChildUpdate: true });
 
-    this.groundExtent = 0; // 여기까지 지형 생성됨 (월드 x좌표)
-    this.extendGround(GAME_WIDTH * 2);
+    // ===== 플랫폼 생성 (바닥 + 공중 플랫폼) =====
+    PLATFORMS.forEach((p) => {
+      const color = p.isGround ? 0x5c4033 : 0x6b5344; // 바닥: 흙색 / 플랫폼: 옅은 갈색
+      const plat = this.add.rectangle(p.x, p.y, p.width, p.height, color);
+      // 윗면 잔디 표시
+      this.add.rectangle(p.x, p.y - p.height / 2 + 4, p.width, 8, 0x4a7c3a);
+      this.physics.add.existing(plat, true);
+      this.platforms.add(plat);
+    });
 
-    // ===== 플레이어 =====
-    this.player = new Player(this, 120, GROUND_Y - 100, playerData);
+    // ===== 좌우 벽 =====
+    [WALL_THICKNESS / 2, GAME_WIDTH - WALL_THICKNESS / 2].forEach((wx) => {
+      const wall = this.add.rectangle(wx, GAME_HEIGHT / 2, WALL_THICKNESS, GAME_HEIGHT, 0x3a2e28);
+      this.physics.add.existing(wall, true);
+      this.walls.add(wall);
+    });
 
-    this.physics.add.collider(this.player, this.grounds);
-    this.physics.add.collider(this.player, this.obstacles);
-    this.physics.add.collider(this.enemies, this.grounds);
-    this.physics.add.overlap(this.player, this.enemies, (_player, _enemy) => {
+    // ===== 플레이어 (바닥 위에서 시작) =====
+    const groundTop = PLATFORMS[0].y - PLATFORMS[0].height / 2;
+    this.player = new Player(this, 220, groundTop - 80, playerData);
+
+    this.physics.add.collider(this.player, this.platforms);
+    this.physics.add.collider(this.player, this.walls);
+    this.physics.add.collider(this.enemies, this.platforms);
+    this.physics.add.collider(this.enemies, this.walls);
+    this.physics.add.overlap(this.player, this.enemies, () => {
       this.player.hitByEnemy(ENEMY.DAMAGE);
     });
 
-    // ===== 카메라: 플레이어를 화면 왼쪽 1/4 지점에 두고 수평으로만 추적 =====
-    this.cameras.main.startFollow(this.player, false, 1, 0);
-    this.cameras.main.setFollowOffset(-GAME_WIDTH / 4, this.player.y - GAME_HEIGHT / 2);
-
-    // ===== 스폰 타이머 =====
+    // ===== 적 스폰 (초기 + 주기적 리스폰, 최대 수 제한) =====
+    for (let i = 0; i < 3; i += 1) this.spawnEnemy();
     this.time.addEvent({
       delay: ENEMY.SPAWN_INTERVAL,
       loop: true,
-      callback: () => this.spawnEnemy(),
-    });
-    this.time.addEvent({
-      delay: OBSTACLE.SPAWN_INTERVAL,
-      loop: true,
-      callback: () => this.spawnObstacle(),
+      callback: () => {
+        if (this.enemies.getLength() < ENEMY.MAX_COUNT) this.spawnEnemy();
+      },
     });
 
     // ===== 적 처치 → 경험치 획득 =====
@@ -76,74 +79,35 @@ export default class GameScene extends Phaser.Scene {
   update(time) {
     this.player.update(time);
 
-    const scrollX = this.cameras.main.scrollX;
-
-    // 전방 지형을 미리 생성
-    this.extendGround(scrollX + GAME_WIDTH * 2);
-
-    // 화면 왼쪽으로 벗어난 오브젝트 정리
-    this.cleanupBehind(scrollX - 200);
-
-    // 혹시 낙하하면 지면 위로 복귀 (안전장치)
+    // 낙사 안전장치 (벽으로 막혀 있어 거의 발생하지 않음)
     if (this.player.y > GAME_HEIGHT + 100) {
-      this.player.setPosition(scrollX + 120, GROUND_Y - 100);
+      this.player.setPosition(GAME_WIDTH / 2, 100);
       this.player.body.setVelocity(0, 0);
     }
   }
 
-  /** toX 지점까지 지면 세그먼트를 이어 붙인다 */
-  extendGround(toX) {
-    const SEGMENT = 400;
-    while (this.groundExtent < toX) {
-      const x = this.groundExtent + SEGMENT / 2;
-      const ground = this.add.rectangle(
-        x,
-        GROUND_Y + GROUND_HEIGHT / 2,
-        SEGMENT,
-        GROUND_HEIGHT,
-        0x5c4033, // 흙: 갈색
-      );
-      // 지면 윗면 잔디
-      this.add.rectangle(x, GROUND_Y + 4, SEGMENT, 8, 0x4a7c3a);
-      this.physics.add.existing(ground, true);
-      this.grounds.add(ground);
-      this.groundExtent += SEGMENT;
-    }
-  }
-
-  /** 화면 오른쪽 바깥에 적 생성 */
-  spawnEnemy() {
-    const x = this.cameras.main.scrollX + GAME_WIDTH + 60;
-    const y = GROUND_Y - ENEMY.HEIGHT / 2;
-    this.enemies.add(new Enemy(this, x, y));
-  }
-
-  /** 화면 오른쪽 바깥에 장애물 생성 */
-  spawnObstacle() {
-    const height = Phaser.Math.Between(OBSTACLE.MIN_HEIGHT, OBSTACLE.MAX_HEIGHT);
-    const x = this.cameras.main.scrollX + GAME_WIDTH + 120;
-    const obstacle = this.add.rectangle(
-      x,
-      GROUND_Y - height / 2,
-      OBSTACLE.WIDTH,
-      height,
-      OBSTACLE.COLOR,
-    );
-    this.physics.add.existing(obstacle, true);
-    this.obstacles.add(obstacle);
-  }
-
-  /** limitX 보다 왼쪽에 있는 적/장애물/지면을 제거해 메모리 누수 방지 */
-  cleanupBehind(limitX) {
+  /** (x, y) 에서 가장 가까운 적 반환 (없으면 null) */
+  findNearestEnemy(x, y) {
+    let closest = null;
+    let closestDist = Infinity;
     this.enemies.getChildren().forEach((enemy) => {
-      if (enemy.x < limitX) enemy.destroy();
+      if (!enemy.active) return;
+      const dist = Phaser.Math.Distance.Between(x, y, enemy.x, enemy.y);
+      if (dist < closestDist) {
+        closest = enemy;
+        closestDist = dist;
+      }
     });
-    this.obstacles.getChildren().forEach((obs) => {
-      if (obs.x < limitX) obs.destroy();
-    });
-    this.grounds.getChildren().forEach((ground) => {
-      if (ground.x + ground.width / 2 < limitX) ground.destroy();
-    });
+    return closest;
+  }
+
+  /** 무작위 플랫폼 위 무작위 위치에 적 생성 */
+  spawnEnemy() {
+    const p = PLATFORMS[Phaser.Math.Between(0, PLATFORMS.length - 1)];
+    const margin = ENEMY.WIDTH;
+    const x = Phaser.Math.Between(p.x - p.width / 2 + margin, p.x + p.width / 2 - margin);
+    const y = p.y - p.height / 2 - ENEMY.HEIGHT / 2;
+    this.enemies.add(new Enemy(this, x, y));
   }
 
   /** 위로 떠오르며 사라지는 텍스트 이펙트 */

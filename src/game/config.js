@@ -13,7 +13,7 @@ export function createGameConfig(parent) {
     physics: {
       default: 'arcade',
       arcade: {
-        gravity: { y: 1000 },
+        gravity: { y: 900 },
         debug: false,
       },
     },
