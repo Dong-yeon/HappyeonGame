@@ -14,6 +14,8 @@ export default function Codex({ onHatch }) {
   const allForms = speciesKeys.flatMap((k) => Object.keys(SPECIES[k].forms));
   const totalDiscovered = allForms.filter((id) => evo.discovered.includes(id)).length;
 
+  const codexBonusPct = Math.round(totalDiscovered * 2); // BONUS_PER_FORM 0.02 = +2%/종
+
   const sp = SPECIES[view] || SPECIES[evo.species];
   const forms = Object.entries(sp.forms).map(([id, f]) => ({ id, ...f }));
   const tiers = [...new Set(forms.map((f) => f.tier))].sort((a, b) => a - b);
@@ -27,6 +29,9 @@ export default function Codex({ onHatch }) {
 
       {open && (
         <div className="codex-panel">
+          <div className="codex-reward">
+            수집 보상 <b>+{codexBonusPct}%</b> 능력 <span className="codex-reward-sub">(발견 {totalDiscovered}/{allForms.length})</span>
+          </div>
           <div className="codex-tabs">
             {speciesKeys.map((k) => (
               <button

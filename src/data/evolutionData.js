@@ -8,6 +8,7 @@
  * → 이 모듈은 economyData/playerData 에 의존하지 않는 순수 모듈로 유지.
  */
 import { SPECIES, DEFAULT_SPECIES, getSpecies } from '../game/species.js';
+import { CODEX } from '../game/constants.js';
 
 /** 진화 조건이 맥락(context)에 부합하는지 */
 function meetsRequires(requires, context) {
@@ -93,6 +94,11 @@ export function createEvolutionData() {
     /** 현재 형태의 고유 스킬 정의 */
     getSkill() {
       return currentForm().skill || null;
+    },
+
+    /** 도감 수집 보상 배율 (발견 형태 수 × 형태당 보너스) — 영구 */
+    getCodexMultiplier() {
+      return 1 + state.discovered.length * CODEX.BONUS_PER_FORM;
     },
 
     subscribe(fn) {

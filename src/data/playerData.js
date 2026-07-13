@@ -46,7 +46,9 @@ export function createPlayerData() {
     const base = baseStatsForLevel(state.level);
     const bonus = economyData.getBonuses();
     const care = careData.getStatBonus(); // 훈련 보너스
-    const mult = evolutionData.getMultiplier() * rebirthData.getMultiplier(); // 진화 단계 × 전생 영구 배율
+    // 진화 단계 × 전생 영구 배율 × 도감 수집 보상
+    const mult =
+      evolutionData.getMultiplier() * rebirthData.getMultiplier() * evolutionData.getCodexMultiplier();
     const newMax = Math.round((base.maxHp + bonus.maxHp + care.hp) * mult);
     const delta = newMax - state.maxHp;
     state.maxHp = newMax;
@@ -71,7 +73,7 @@ export function createPlayerData() {
   function syncFromModifiers() {
     const b = economyData.getBonuses();
     const c = careData.getStatBonus();
-    const sig = `${b.attack}/${b.maxHp}/${evolutionData.getMultiplier()}/${c.attack}/${c.hp}/${rebirthData.getMultiplier()}`;
+    const sig = `${b.attack}/${b.maxHp}/${evolutionData.getMultiplier()}/${c.attack}/${c.hp}/${rebirthData.getMultiplier()}/${evolutionData.getCodexMultiplier()}`;
     if (sig === lastStatSig) return;
     lastStatSig = sig;
     applyStats({ fullHeal: false });

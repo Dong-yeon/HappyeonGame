@@ -932,3 +932,25 @@ body,
   font-weight: 600;
   cursor: pointer;
 }
+
+/* ===== 도감 수집 보상 ===== */
+.codex-reward {
+  padding: 7px 10px;
+  background: linear-gradient(180deg, rgba(255, 215, 130, 0.16), rgba(255, 215, 130, 0.06));
+  border: 1px solid rgba(255, 215, 130, 0.35);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffe8b8;
+  text-align: center;
+}
+
+.codex-reward b {
+  color: #ffd782;
+  font-size: 14px;
+}
+
+.codex-reward-sub {
+  color: #9db4d0;
+  font-weight: 500;
+}

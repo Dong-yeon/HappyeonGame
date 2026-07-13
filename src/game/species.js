@@ -276,6 +276,108 @@ export const SPECIES = {
       },
     },
   },
+
+  gureongi: {
+    name: '구렁이',
+    root: 'gureongi_baby',
+    forms: {
+      gureongi_baby: {
+        name: '새끼 구렁이',
+        color: 0x94d82d,
+        mult: 1.0,
+        tier: 1,
+        skill: { name: '칭칭 감기', type: 'strike', mult: 2.0, cooldown: 2500, range: 120, color: 0xc0eb75 },
+        evolveTo: [{ to: 'gureongi', essence: 150 }],
+      },
+      gureongi: {
+        name: '구렁이',
+        color: 0x66a80f,
+        mult: 1.9,
+        tier: 2,
+        skill: { name: '독 안개', type: 'aoe', mult: 1.7, cooldown: 3400, range: 170, color: 0xa9e34b },
+        evolveTo: [
+          { to: 'dokryong', essence: 1200, requires: { dominant: 'attack' }, hint: '공격 특화 필요' },
+          { to: 'baeksa', essence: 1200, requires: { dominant: 'hp' }, hint: '체력 특화 필요' },
+          { to: 'hwangnyongsa', essence: 1200 },
+        ],
+      },
+      dokryong: {
+        name: '독룡',
+        color: 0x5c940d,
+        mult: 3.8,
+        tier: 3,
+        skill: { name: '맹독 참격', type: 'strike', mult: 3.6, cooldown: 2600, range: 140, color: 0x82c91e },
+        evolveTo: [],
+      },
+      baeksa: {
+        name: '백사',
+        color: 0xe9ecef,
+        mult: 3.4,
+        tier: 3,
+        skill: { name: '백사 결계', type: 'aoe', mult: 2.3, cooldown: 3200, range: 230, color: 0xf1f3f5 },
+        evolveTo: [],
+      },
+      hwangnyongsa: {
+        name: '황룡사',
+        color: 0xffd43b,
+        mult: 3.6,
+        tier: 3,
+        skill: { name: '황금 똬리', type: 'beam', mult: 2.6, cooldown: 3000, range: 420, color: 0xffe066 },
+        evolveTo: [],
+      },
+    },
+  },
+
+  jeoseung: {
+    name: '저승사자',
+    root: 'saja',
+    forms: {
+      saja: {
+        name: '초급 사자',
+        color: 0x495057,
+        mult: 1.0,
+        tier: 1,
+        skill: { name: '낫질', type: 'strike', mult: 2.0, cooldown: 2500, range: 120, color: 0x868e96 },
+        evolveTo: [{ to: 'jeoseung_saja', essence: 150 }],
+      },
+      jeoseung_saja: {
+        name: '저승사자',
+        color: 0x343a40,
+        mult: 1.9,
+        tier: 2,
+        skill: { name: '명부 인도', type: 'aoe', mult: 1.7, cooldown: 3400, range: 180, color: 0x868e96 },
+        evolveTo: [
+          { to: 'yeomna_saja', essence: 1200, requires: { dominant: 'attack' }, hint: '공격 특화 필요' },
+          { to: 'heukpo_saja', essence: 1200, requires: { dominant: 'hp' }, hint: '체력 특화 필요' },
+          { to: 'myeonggye_saja', essence: 1200 },
+        ],
+      },
+      yeomna_saja: {
+        name: '염라 사자',
+        color: 0xe03131,
+        mult: 3.8,
+        tier: 3,
+        skill: { name: '염라의 낫', type: 'strike', mult: 3.6, cooldown: 2600, range: 140, color: 0xff8787 },
+        evolveTo: [],
+      },
+      heukpo_saja: {
+        name: '흑포 사자',
+        color: 0x212529,
+        mult: 3.4,
+        tier: 3,
+        skill: { name: '명계 장막', type: 'aoe', mult: 2.3, cooldown: 3200, range: 230, color: 0x495057 },
+        evolveTo: [],
+      },
+      myeonggye_saja: {
+        name: '명계 사자',
+        color: 0x5f3dc4,
+        mult: 3.6,
+        tier: 3,
+        skill: { name: '혼백 겁화', type: 'beam', mult: 2.6, cooldown: 3000, range: 420, color: 0x9775fa },
+        evolveTo: [],
+      },
+    },
+  },
 };
 
 /** 기본 시작 종족 */

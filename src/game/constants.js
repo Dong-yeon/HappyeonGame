@@ -62,6 +62,10 @@ export const REBIRTH = {
   BONUS_PER: 0.5, // 전생 1회당 영구 능력치 배율 +50%
 };
 
+export const CODEX = {
+  BONUS_PER_FORM: 0.02, // 도감 형태 1종 발견당 영구 능력치 +2% (전 종족 수집 보상)
+};
+
 export const CARE = {
   MAX_FULLNESS: 100,
   FEED_AMOUNT: 25, // 먹이 1회당 포만감 회복
