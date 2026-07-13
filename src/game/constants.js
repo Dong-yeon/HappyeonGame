@@ -49,4 +49,13 @@ export const BOSS = {
   HP_MUL: 10, // 같은 스테이지 일반 적 대비 체력 배율
   DAMAGE_MUL: 1.6, // 접촉 피해 배율
   EXP_MUL: 8, // 경험치 보상 배율
+  GOLD_MUL: 10, // 골드 보상 배율
+};
+
+export const GOLD = {
+  ENEMY_BASE: 4, // 일반 적 기본 골드
+  ENEMY_PER_STAGE: 2, // 스테이지(0-base index)당 추가 골드
+  OFFLINE_EFFICIENCY: 0.5, // 오프라인 획득 = 활성 속도의 50%
+  OFFLINE_CAP_HOURS: 8, // 오프라인 보상 상한 (시간)
+  OFFLINE_MIN_SEC: 60, // 이 시간 이상 비웠을 때만 오프라인 보상
 };

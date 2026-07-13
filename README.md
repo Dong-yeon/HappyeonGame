@@ -22,35 +22,42 @@ npm run dev
 
 ## 현재 프로토타입 기능
 
-- 화랑 캐릭터(파란 사각형)가 자동으로 오른쪽 전진
-- 전방 장애물(회색 사각형) 감지 시 자동 점프
-- 사거리 내 적(빨간 사각형) 자동 공격 — 검격 이펙트, 적 HP바
-- 적 처치 시 경험치 획득 → 레벨업 (공격력/최대HP 증가, 체력 회복)
-- React HUD: HP바 / 레벨 / 경험치바 / 처치 수
+- **고정 맵 자동 전투**: 화랑(파란 사각형)이 가장 가까운 적을 향해 자동 이동·좌우 반전·점프·공격
+- 여러 층 플랫폼 + 좌우 벽, 적은 무작위 위치에 리스폰
+- 적 처치 시 경험치 → 레벨업 (공격력/최대HP 증가)
+- **스테이지 진행 구조**: 적 N킬 → 보스 등장 → 처치 → 클리어 → 다음 스테이지(난이도 상승, 역사 전투 배경)
+- **방치형 메타**: 골드 드랍 → 업그레이드 상점(공격력/체력/골드 획득) → 오프라인 보상
+- React HUD: 스테이지 / HP바 / 레벨 / 경험치바 / 돌파 진행바 / 골드
 
 ## 프로젝트 구조
 
 ```
 src/
 ├── main.jsx                  # React 엔트리
-├── App.jsx                   # 게임 + HUD 레이아웃
+├── App.jsx                   # 게임 + HUD + 상점 + 오프라인 보상 레이아웃
 ├── components/
-│   └── HUD.jsx               # React HUD (HP/레벨/경험치)
-├── data/
-│   └── playerData.js         # 게임 데이터 모듈 (레벨/경험치, 백엔드 연동 지점)
+│   ├── HUD.jsx               # React HUD (스테이지/HP/레벨/경험치/진행)
+│   ├── Shop.jsx              # 업그레이드 상점 (골드 소비)
+│   └── OfflineReward.jsx     # 오프라인 보상 모달
+├── data/                     # 순수 데이터 모듈 (백엔드 연동 지점, 구독 패턴)
+│   ├── playerData.js         # 레벨/경험치/스탯 (업그레이드 보너스 반영)
+│   ├── stageData.js          # 스테이지 진행 상태
+│   └── economyData.js        # 골드/업그레이드/오프라인 (localStorage 영속)
 └── game/
     ├── PhaserGame.jsx        # Phaser <-> React 래퍼 컴포넌트
     ├── config.js             # Phaser 게임 설정
     ├── constants.js          # 밸런스/크기 상수
+    ├── stages.js             # 스테이지 정의 (역사 전투 배경 + 난이도)
     ├── scenes/
-    │   └── GameScene.js      # 메인 스테이지 (무한 스크롤, 스폰, 전투)
+    │   └── GameScene.js      # 고정 맵 사냥터 (스폰/전투/스테이지 오케스트레이션)
     └── entities/
-        ├── Player.js         # 화랑 (자동 이동/점프/공격)
-        └── Enemy.js          # 기본 적 (왼쪽 이동)
+        ├── Player.js         # 화랑 (가장 가까운 적 자동 타겟팅)
+        └── Enemy.js          # 적/보스 (옵션으로 스탯 조정)
 ```
 
 ## Spring Boot 백엔드 연동 지점
 
-- `src/data/playerData.js` 의 `loadFromServer()` / `saveToServer()` 에 fetch 구현
+- `src/data/` 의 각 모듈(`playerData`/`stageData`/`economyData`)에 `loadFromServer()` / `saveToServer()` 스텁 준비됨
+- 현재 `economyData` 는 localStorage 로 영속화 → 추후 서버 저장으로 교체
 - `vite.config.js` 에 `/api` → `http://localhost:8080` 프록시 설정 완료
-- 게임 로직(Phaser)과 데이터(playerData)가 분리되어 있어 저장 방식 교체가 쉬움
+- 게임 로직(Phaser)과 데이터 모듈이 분리되어 있어 저장 방식 교체가 쉬움

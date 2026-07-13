@@ -2,9 +2,10 @@
  * 플레이어 게임 데이터 모듈 (레벨 / 경험치 / 스탯)
  *
  * Phaser·React 어디에도 의존하지 않는 순수 모듈로 분리.
- * 추후 Spring Boot 백엔드 연동 시 loadFromServer / saveToServer 의
- * fetch 부분만 구현하면 된다. (vite.config.js 에 /api 프록시 설정됨)
+ * 업그레이드(economyData) 보너스를 스탯에 반영한다 (일방 의존: playerData → economyData).
+ * 추후 Spring Boot 백엔드 연동 시 loadFromServer / saveToServer 의 fetch 부분만 구현하면 된다.
  */
+import { economyData } from './economyData.js';
 
 const EXP_BASE = 20; // 레벨 1→2 필요 경험치
 const EXP_GROWTH = 1.4; // 레벨당 필요 경험치 증가율
@@ -13,7 +14,8 @@ function expForLevel(level) {
   return Math.floor(EXP_BASE * Math.pow(EXP_GROWTH, level - 1));
 }
 
-function statsForLevel(level) {
+/** 업그레이드 보너스를 뺀 순수 레벨 기반 스탯 */
+function baseStatsForLevel(level) {
   return {
     maxHp: 100 + (level - 1) * 20,
     attackPower: 10 + (level - 1) * 3,
@@ -27,16 +29,48 @@ export function createPlayerData() {
     level: 1,
     exp: 0,
     expToNext: expForLevel(1),
-    hp: statsForLevel(1).maxHp,
-    maxHp: statsForLevel(1).maxHp,
-    attackPower: statsForLevel(1).attackPower,
+    hp: 0,
+    maxHp: 0,
+    attackPower: 0,
     kills: 0,
   };
+
+  /**
+   * 레벨 기반 스탯 + 업그레이드 보너스로 maxHp/attackPower 재계산.
+   * fullHeal=true 면 체력 전체 회복(레벨업 시), false 면 늘어난 만큼만 회복(업그레이드 시).
+   */
+  function applyStats({ fullHeal = false } = {}) {
+    const base = baseStatsForLevel(state.level);
+    const bonus = economyData.getBonuses();
+    const newMax = base.maxHp + bonus.maxHp;
+    const delta = newMax - state.maxHp;
+    state.maxHp = newMax;
+    state.attackPower = base.attackPower + bonus.attack;
+    if (fullHeal) {
+      state.hp = newMax;
+    } else {
+      state.hp = Math.min(newMax, state.hp + Math.max(0, delta));
+    }
+  }
 
   function emit() {
     const snapshot = { ...state };
     listeners.forEach((fn) => fn(snapshot));
   }
+
+  // 초기 스탯 설정 (레벨1 + 저장된 업그레이드 반영)
+  applyStats({ fullHeal: true });
+
+  // 업그레이드 변경 시 스탯 반영 (보너스 값이 실제로 바뀐 경우에만)
+  let lastBonusSig = '';
+  economyData.subscribe(() => {
+    const b = economyData.getBonuses();
+    const sig = `${b.attack}/${b.maxHp}`;
+    if (sig === lastBonusSig) return;
+    lastBonusSig = sig;
+    applyStats({ fullHeal: false });
+    emit();
+  });
 
   return {
     /** 현재 상태 스냅샷 (읽기 전용 복사본) */
@@ -59,10 +93,7 @@ export function createPlayerData() {
         state.exp -= state.expToNext;
         state.level += 1;
         state.expToNext = expForLevel(state.level);
-        const stats = statsForLevel(state.level);
-        state.maxHp = stats.maxHp;
-        state.attackPower = stats.attackPower;
-        state.hp = state.maxHp; // 레벨업 시 체력 전체 회복
+        applyStats({ fullHeal: true }); // 레벨업 시 체력 전체 회복
         leveledUp = true;
       }
       emit();

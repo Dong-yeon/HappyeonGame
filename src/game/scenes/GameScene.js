@@ -8,9 +8,11 @@ import {
   WALL_THICKNESS,
   ENEMY,
   BOSS,
+  GOLD,
 } from '../constants.js';
 import { playerData } from '../../data/playerData.js';
 import { stageData } from '../../data/stageData.js';
+import { economyData } from '../../data/economyData.js';
 
 /**
  * 메인 사냥터 씬 — 고정 크기 맵 (메이플스토리 일반 사냥터 방식) + 스테이지 진행 구조.
@@ -81,6 +83,12 @@ export default class GameScene extends Phaser.Scene {
       this.playerData.addKill();
       const leveledUp = this.playerData.gainExp(exp);
       this.showFloatingText(x, y - 30, `+${exp} EXP`, '#ffd54f');
+
+      // 골드 드랍 (스테이지 스케일 × 업그레이드 배율)
+      const gold = this.rollGold(isBoss);
+      economyData.gainGold(gold);
+      this.showFloatingText(x + 14, y - 30, `+${gold} G`, '#ffd166');
+
       if (leveledUp) {
         this.showFloatingText(
           this.player.x,
@@ -161,6 +169,14 @@ export default class GameScene extends Phaser.Scene {
       }),
     );
     this.showBanner('⚔ 보스 등장!', '#ff6b6b');
+  }
+
+  /** 처치 시 골드량 계산 (스테이지 스케일 × 업그레이드 배율) */
+  rollGold(isBoss) {
+    const idx = this.stageData.getState().stageIndex;
+    const base = GOLD.ENEMY_BASE + idx * GOLD.ENEMY_PER_STAGE;
+    const raw = isBoss ? base * BOSS.GOLD_MUL : base;
+    return Math.max(1, Math.round(raw * economyData.getGoldMultiplier()));
   }
 
   /** 보스 처치 → 스테이지 클리어 → 다음 스테이지 */
