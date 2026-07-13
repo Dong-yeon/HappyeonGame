@@ -954,3 +954,74 @@ body,
   color: #9db4d0;
   font-weight: 500;
 }
+
+/* =====================================================================
+   UI 테마 — 한국 전통 먹색(ink) · 금박(gold) · 한지색(cream) 통일 레이어
+   (마지막에 정의해 기존 표면/헤더를 덮어씀. 기능 색상 accent 는 유지)
+   ===================================================================== */
+:root {
+  --ink: rgba(26, 20, 12, 0.93);
+  --gold: #d9b24a;
+  --gold-lt: #f0d080;
+  --gold-line: rgba(201, 162, 39, 0.42);
+  --cream: #efe4cb;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* 표면: 먹색 + 금박 테두리 + 금박 내부선 */
+.hud,
+.shop-toggle,
+.codex-toggle,
+.care-toggle,
+.skill,
+.shop-panel,
+.codex-panel,
+.care-panel {
+  background: var(--ink) !important;
+  border-color: var(--gold-line) !important;
+}
+
+.shop-panel,
+.codex-panel,
+.care-panel,
+.hud {
+  box-shadow: inset 0 0 0 1px rgba(201, 162, 39, 0.14), 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* 헤더/타이틀: 금박 톤 + 자간 */
+.hud-title,
+.shop-title,
+.codex-title,
+.offline-title,
+.picker-title {
+  color: var(--gold-lt) !important;
+  letter-spacing: 0.4px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+/* 골드 계열 버튼(구매·먹이·수령·전생 등) → 금박 그라데이션 통일 */
+.shop-buy,
+.offline-claim,
+.care-btn.feed,
+.codex-hatch {
+  background: linear-gradient(180deg, var(--gold-lt), var(--gold)) !important;
+  color: #2a1c00 !important;
+}
+
+/* 모달·픽커: 먹색 계열로 */
+.offline-modal,
+.picker {
+  background: linear-gradient(160deg, #241c12, #14100a) !important;
+  border-color: var(--gold-line) !important;
+}
+
+/* 본문 텍스트 한지색 */
+.hud,
+.shop-item-name,
+.codex-form-name {
+  color: var(--cream) !important;
+}
