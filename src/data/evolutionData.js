@@ -85,6 +85,11 @@ export function createEvolutionData() {
       return currentForm().color;
     },
 
+    /** 현재 형태의 고유 스킬 정의 */
+    getSkill() {
+      return currentForm().skill || null;
+    },
+
     subscribe(fn) {
       listeners.add(fn);
       fn(snapshot());

@@ -802,3 +802,47 @@ body,
   font-weight: 600;
   cursor: pointer;
 }
+
+/* ===== 스킬 표시 위젯 ===== */
+.skill {
+  position: absolute;
+  bottom: 24px;
+  right: 16px;
+  width: 200px;
+  max-width: calc(100% - 32px);
+  padding: 9px 12px;
+  background: rgba(20, 18, 40, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  z-index: 20;
+  font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+}
+
+.skill-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.skill-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.skill-name {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.skill-state {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 700;
+  color: #b9b3c9;
+}
+
+.skill-bar {
+  height: 8px;
+}

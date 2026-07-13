@@ -7,6 +7,7 @@ import OfflineReward from './components/OfflineReward.jsx';
 import Evolve from './components/Evolve.jsx';
 import Rebirth from './components/Rebirth.jsx';
 import SpeciesPicker from './components/SpeciesPicker.jsx';
+import SkillIndicator from './components/SkillIndicator.jsx';
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
       <Shop />
       <Codex />
       <Care />
+      <SkillIndicator />
       <Evolve />
       <Rebirth />
       <OfflineReward />

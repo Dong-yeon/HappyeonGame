@@ -17,6 +17,7 @@ import { economyData } from '../../data/economyData.js';
 import { evolutionData } from '../../data/evolutionData.js';
 import { careData } from '../../data/careData.js';
 import { rebirthData } from '../../data/rebirthData.js';
+import { skillData } from '../../data/skillData.js';
 
 /**
  * 메인 사냥터 씬 — 고정 크기 맵 (메이플스토리 일반 사냥터 방식) + 스테이지 진행 구조.
@@ -59,11 +60,16 @@ export default class GameScene extends Phaser.Scene {
     this.player = new Player(this, 220, groundTop - 80, playerData);
     this.player.setFillStyle(evolutionData.getColor());
 
-    // 진화 시: 요괴 색 갱신 + 연출 (Player AI 로직은 건드리지 않음)
+    // ===== 스킬 (형태별 고유기, 쿨타임마다 자동 발동) =====
+    this.lastSkillTime = 0;
+    skillData.setSkill(evolutionData.getSkill());
+
+    // 진화 시: 요괴 색 갱신 + 스킬 교체 + 연출 (Player AI 로직은 건드리지 않음)
     let lastFormId = evolutionData.getState().formId;
     let lastTier = evolutionData.getState().tier;
     const unsubEvolution = evolutionData.subscribe((evo) => {
       this.player.setFillStyle(evo.color);
+      skillData.setSkill(evolutionData.getSkill());
       if (evo.formId !== lastFormId) {
         const forward = evo.tier > lastTier; // 전진 진화만 배너 (전생 회귀는 제외)
         lastFormId = evo.formId;
@@ -160,6 +166,7 @@ export default class GameScene extends Phaser.Scene {
 
   update(time) {
     this.player.update(time);
+    this.updateSkills(time);
 
     // 낙사 안전장치 (벽으로 막혀 있어 거의 발생하지 않음)
     if (this.player.y > GAME_HEIGHT + 100) {
@@ -181,6 +188,73 @@ export default class GameScene extends Phaser.Scene {
       }
     });
     return closest;
+  }
+
+  /** 형태별 고유 스킬을 쿨타임마다 자동 발동 (사거리 내 적이 있을 때만) */
+  updateSkills(time) {
+    const skill = evolutionData.getSkill();
+    if (!skill) return;
+    if (time - this.lastSkillTime < skill.cooldown) return;
+
+    const power = this.playerData.getState().attackPower;
+    const dmg = Math.round(power * skill.mult);
+    const px = this.player.x;
+    const py = this.player.y;
+    const facing = this.player.facing;
+
+    if (skill.type === 'strike') {
+      const target = this.findNearestEnemy(px, py);
+      if (!target || Phaser.Math.Distance.Between(px, py, target.x, target.y) > skill.range) return;
+      target.takeDamage(dmg);
+      this.skillStrikeFx(target.x, target.y, skill.color);
+    } else if (skill.type === 'aoe') {
+      const hit = this.enemies.getChildren().filter(
+        (e) => e.active && Phaser.Math.Distance.Between(px, py, e.x, e.y) <= skill.range,
+      );
+      if (!hit.length) return;
+      hit.forEach((e) => e.takeDamage(dmg));
+      this.skillAoeFx(px, py, skill.range, skill.color);
+    } else if (skill.type === 'beam') {
+      const hit = this.enemies.getChildren().filter((e) => {
+        if (!e.active) return false;
+        const ahead = facing > 0 ? e.x >= px : e.x <= px;
+        return ahead && Math.abs(e.x - px) <= skill.range && Math.abs(e.y - py) <= 50;
+      });
+      if (!hit.length) return;
+      hit.forEach((e) => e.takeDamage(dmg));
+      this.skillBeamFx(px, py, facing, skill.range, skill.color);
+    } else {
+      return;
+    }
+
+    this.lastSkillTime = time;
+    skillData.markCast();
+    this.showFloatingText(px, py - this.player.height, skill.name, this.hex(skill.color));
+  }
+
+  hex(int) {
+    return `#${int.toString(16).padStart(6, '0')}`;
+  }
+
+  /** 단일 강타 이펙트 */
+  skillStrikeFx(x, y, color) {
+    const fx = this.add.star(x, y, 6, 14, 30, color, 0.85).setDepth(50);
+    this.tweens.add({ targets: fx, scale: 1.8, alpha: 0, angle: 60, duration: 260, onComplete: () => fx.destroy() });
+  }
+
+  /** 광역 이펙트 (플레이어 중심 원) */
+  skillAoeFx(x, y, radius, color) {
+    const ring = this.add.circle(x, y, radius, color, 0.22).setStrokeStyle(4, color, 0.8).setDepth(49);
+    ring.setScale(0.3);
+    this.tweens.add({ targets: ring, scale: 1, alpha: 0, duration: 340, onComplete: () => ring.destroy() });
+  }
+
+  /** 전방 관통 이펙트 (브레스) */
+  skillBeamFx(x, y, facing, range, color) {
+    const beam = this.add
+      .rectangle(x + (facing * range) / 2, y, range, 44, color, 0.55)
+      .setDepth(49);
+    this.tweens.add({ targets: beam, alpha: 0, scaleY: 1.6, duration: 300, onComplete: () => beam.destroy() });
   }
 
   /** 현재 스테이지 배율을 반영한 일반 적을 무작위 플랫폼 위에 생성 */
