@@ -26,8 +26,8 @@ export function getStageConfig(index) {
   return {
     name: `천상의 시련`,
     killsToClear: last.killsToClear + extra * 2,
-    enemyHpMul: last.enemyHpMul * Math.pow(1.25, extra),
-    enemyDmgMul: last.enemyDmgMul * Math.pow(1.15, extra),
+    enemyHpMul: last.enemyHpMul * Math.pow(1.35, extra), // 후반 체력 급증 → 파워 성장(전생) 유도
+    enemyDmgMul: last.enemyDmgMul * Math.pow(1.2, extra),
     bgColor: last.bgColor,
     number: index + 1,
   };

@@ -34,7 +34,7 @@ export const ENEMY = {
   HEIGHT: 40,
   COLOR: 0xc9a26b, // 인간 병사: 갑주(가죽/청동)색
   MOVE_SPEED: 45, // 좌우 배회 속도 (px/s)
-  HP: 20,
+  HP: 28, // 파워 성장이 처치 속도로 체감되도록 상향 (기존 20)
   DAMAGE: 10, // 접촉 피해
   EXP_REWARD: 12,
   SPAWN_INTERVAL: 1500, // 스폰 주기 (ms)
@@ -46,16 +46,16 @@ export const BOSS = {
   HEIGHT: 72,
   COLOR: 0x845ef7, // 인간 장수/퇴마사: 남보라색
   MOVE_SPEED: 30, // 보스는 느리게 이동
-  HP_MUL: 10, // 같은 스테이지 일반 적 대비 체력 배율
+  HP_MUL: 6, // 같은 스테이지 일반 적 대비 체력 배율 (초반 보스 정체 완화, 기존 10)
   DAMAGE_MUL: 1.6, // 접촉 피해 배율
   EXP_MUL: 8, // 경험치 보상 배율
   GOLD_MUL: 10, // 골드 보상 배율
-  ESSENCE_MUL: 12, // 정기 보상 배율 (보스 포식)
+  ESSENCE_MUL: 3, // 정기 보상 배율 (보스 포식) — 티어를 통째로 채우던 스파이크 완화 (기존 12)
 };
 
 export const ESSENCE = {
   PER_HUMAN: 8, // 인간 1명 포식당 기본 정기
-  PER_STAGE: 4, // 스테이지(0-base index)당 추가 정기
+  PER_STAGE: 3, // 스테이지(0-base index)당 추가 정기 (후반 급증 완화, 기존 4)
 };
 
 export const REBIRTH = {
@@ -75,7 +75,7 @@ export const CARE = {
 };
 
 export const GOLD = {
-  ENEMY_BASE: 4, // 일반 적 기본 골드
+  ENEMY_BASE: 5, // 일반 적 기본 골드 (처치 감소분 보정)
   ENEMY_PER_STAGE: 2, // 스테이지(0-base index)당 추가 골드
   OFFLINE_EFFICIENCY: 0.5, // 오프라인 획득 = 활성 속도의 50%
   OFFLINE_CAP_HOURS: 8, // 오프라인 보상 상한 (시간)

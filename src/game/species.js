@@ -32,7 +32,7 @@ export const SPECIES = {
         mult: 1.0,
         tier: 1,
         skill: { name: '물어뜯기', type: 'strike', mult: 2.0, cooldown: 2500, range: 120, color: 0x69db7c },
-        evolveTo: [{ to: 'imugi', essence: 120 }],
+        evolveTo: [{ to: 'imugi', essence: 150 }],
       },
       imugi: {
         name: '이무기',
@@ -41,9 +41,9 @@ export const SPECIES = {
         tier: 2,
         skill: { name: '용트림', type: 'aoe', mult: 1.6, cooldown: 3500, range: 160, color: 0x63e6be },
         evolveTo: [
-          { to: 'heukryong', essence: 400, requires: { dominant: 'attack' }, hint: '공격 특화 필요' },
-          { to: 'cheongryong', essence: 400, requires: { dominant: 'hp' }, hint: '체력 특화 필요' },
-          { to: 'hwangryong', essence: 400 },
+          { to: 'heukryong', essence: 1200, requires: { dominant: 'attack' }, hint: '공격 특화 필요' },
+          { to: 'cheongryong', essence: 1200, requires: { dominant: 'hp' }, hint: '체력 특화 필요' },
+          { to: 'hwangryong', essence: 1200 },
         ],
       },
       heukryong: {
@@ -83,7 +83,7 @@ export const SPECIES = {
         mult: 1.0,
         tier: 1,
         skill: { name: '할퀴기', type: 'strike', mult: 2.0, cooldown: 2500, range: 120, color: 0xffc078 },
-        evolveTo: [{ to: 'gumiho', essence: 120 }],
+        evolveTo: [{ to: 'gumiho', essence: 150 }],
       },
       gumiho: {
         name: '구미호',
@@ -92,9 +92,9 @@ export const SPECIES = {
         tier: 2,
         skill: { name: '여우불', type: 'beam', mult: 1.9, cooldown: 3200, range: 360, color: 0xff8787 },
         evolveTo: [
-          { to: 'heukho', essence: 400, requires: { dominant: 'attack' }, hint: '공격 특화 필요' },
-          { to: 'baekho', essence: 400, requires: { dominant: 'hp' }, hint: '체력 특화 필요' },
-          { to: 'cheonho', essence: 400 },
+          { to: 'heukho', essence: 1200, requires: { dominant: 'attack' }, hint: '공격 특화 필요' },
+          { to: 'baekho', essence: 1200, requires: { dominant: 'hp' }, hint: '체력 특화 필요' },
+          { to: 'cheonho', essence: 1200 },
         ],
       },
       heukho: {
@@ -134,7 +134,7 @@ export const SPECIES = {
         mult: 1.0,
         tier: 1,
         skill: { name: '방망이질', type: 'strike', mult: 2.0, cooldown: 2500, range: 120, color: 0xffc078 },
-        evolveTo: [{ to: 'dokkaebi', essence: 120 }],
+        evolveTo: [{ to: 'dokkaebi', essence: 150 }],
       },
       dokkaebi: {
         name: '도깨비',
@@ -143,9 +143,9 @@ export const SPECIES = {
         tier: 2,
         skill: { name: '도깨비불', type: 'beam', mult: 1.9, cooldown: 3200, range: 360, color: 0xffa94d },
         evolveTo: [
-          { to: 'fire_dokkaebi', essence: 400, requires: { dominant: 'attack' }, hint: '공격 특화 필요' },
-          { to: 'blue_dokkaebi', essence: 400, requires: { dominant: 'hp' }, hint: '체력 특화 필요' },
-          { to: 'king_dokkaebi', essence: 400 },
+          { to: 'fire_dokkaebi', essence: 1200, requires: { dominant: 'attack' }, hint: '공격 특화 필요' },
+          { to: 'blue_dokkaebi', essence: 1200, requires: { dominant: 'hp' }, hint: '체력 특화 필요' },
+          { to: 'king_dokkaebi', essence: 1200 },
         ],
       },
       fire_dokkaebi: {
@@ -185,7 +185,7 @@ export const SPECIES = {
         mult: 1.0,
         tier: 1,
         skill: { name: '깨물기', type: 'strike', mult: 2.0, cooldown: 2500, range: 120, color: 0xdee2e6 },
-        evolveTo: [{ to: 'bulgasari', essence: 120 }],
+        evolveTo: [{ to: 'bulgasari', essence: 150 }],
       },
       bulgasari: {
         name: '불가사리',
@@ -194,9 +194,9 @@ export const SPECIES = {
         tier: 2,
         skill: { name: '무쇠 파쇄', type: 'aoe', mult: 1.7, cooldown: 3400, range: 170, color: 0xced4da },
         evolveTo: [
-          { to: 'steel_bulgasari', essence: 400, requires: { dominant: 'attack' }, hint: '공격 특화 필요' },
-          { to: 'iron_bulgasari', essence: 400, requires: { dominant: 'hp' }, hint: '체력 특화 필요' },
-          { to: 'giant_bulgasari', essence: 400 },
+          { to: 'steel_bulgasari', essence: 1200, requires: { dominant: 'attack' }, hint: '공격 특화 필요' },
+          { to: 'iron_bulgasari', essence: 1200, requires: { dominant: 'hp' }, hint: '체력 특화 필요' },
+          { to: 'giant_bulgasari', essence: 1200 },
         ],
       },
       steel_bulgasari: {
@@ -236,7 +236,7 @@ export const SPECIES = {
         mult: 1.0,
         tier: 1,
         skill: { name: '어둠 손아귀', type: 'strike', mult: 2.0, cooldown: 2500, range: 120, color: 0x9775fa },
-        evolveTo: [{ to: 'geuseundae', essence: 120 }],
+        evolveTo: [{ to: 'geuseundae', essence: 150 }],
       },
       geuseundae: {
         name: '그슨대',
@@ -245,9 +245,9 @@ export const SPECIES = {
         tier: 2,
         skill: { name: '암흑 파동', type: 'aoe', mult: 1.7, cooldown: 3400, range: 180, color: 0x845ef7 },
         evolveTo: [
-          { to: 'giryeong_geuseundae', essence: 400, requires: { dominant: 'attack' }, hint: '공격 특화 필요' },
-          { to: 'amya_geuseundae', essence: 400, requires: { dominant: 'hp' }, hint: '체력 특화 필요' },
-          { to: 'cheonjang_geuseundae', essence: 400 },
+          { to: 'giryeong_geuseundae', essence: 1200, requires: { dominant: 'attack' }, hint: '공격 특화 필요' },
+          { to: 'amya_geuseundae', essence: 1200, requires: { dominant: 'hp' }, hint: '체력 특화 필요' },
+          { to: 'cheonjang_geuseundae', essence: 1200 },
         ],
       },
       giryeong_geuseundae: {
