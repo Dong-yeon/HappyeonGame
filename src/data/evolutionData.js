@@ -24,9 +24,14 @@ export function createEvolutionData() {
     species: DEFAULT_SPECIES,
     formId: rootId,
     essence: 0,
-    discovered: [rootId], // 도감: 지금까지 도달한 형태 id 목록
+    discovered: [], // 도감: 지금까지 도달한 형태 id (전 종족 통합), 종족 선택 시 채워짐
     chosen: false, // 종족을 선택했는지 (신규 플레이어는 선택 화면 표시)
   };
+
+  /** 특정 form id 가 어느 종족에든 존재하는지 */
+  function isKnownForm(id) {
+    return Object.values(SPECIES).some((sp) => sp.forms[id]);
+  }
 
   function forms() {
     return getSpecies(state.species).forms;
@@ -110,13 +115,13 @@ export function createEvolutionData() {
       emit();
     },
 
-    /** 종족 선택 (신규 플레이어). 성공 시 true */
+    /** 종족 선택 / 부화 (다른 알로 전환). 도감은 유지하고 새 루트를 추가. 성공 시 true */
     chooseSpecies(key) {
       if (!SPECIES[key]) return false;
       state.species = key;
       state.formId = SPECIES[key].root;
       state.essence = 0;
-      state.discovered = [state.formId];
+      markDiscovered(state.formId); // 전 종족 통합 도감이므로 기존 발견은 유지
       state.chosen = true;
       emit();
       return true;
@@ -180,8 +185,8 @@ export function createEvolutionData() {
       state.species = speciesKey;
       state.formId = s.formId && speciesForms[s.formId] ? s.formId : getSpecies(speciesKey).root;
       state.essence = s.essence ?? 0;
-      state.discovered = Array.isArray(s.discovered) && s.discovered.length
-        ? s.discovered.filter((id) => speciesForms[id])
+      state.discovered = Array.isArray(s.discovered)
+        ? s.discovered.filter(isKnownForm) // 전 종족 통합 도감 (현재 종족으로 필터하지 않음)
         : [state.formId];
       markDiscovered(state.formId);
       // 저장이 존재하면 이미 종족을 선택한 플레이어 (구버전 저장은 chosen 없음 → true 처리)

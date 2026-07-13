@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import PhaserGame from './game/PhaserGame.jsx';
 import HUD from './components/HUD.jsx';
 import Shop from './components/Shop.jsx';
@@ -10,18 +11,20 @@ import SpeciesPicker from './components/SpeciesPicker.jsx';
 import SkillIndicator from './components/SkillIndicator.jsx';
 
 export default function App() {
+  const [hatchOpen, setHatchOpen] = useState(false);
+
   return (
     <div className="game-container">
       <PhaserGame />
       <HUD />
       <Shop />
-      <Codex />
+      <Codex onHatch={() => setHatchOpen(true)} />
       <Care />
       <SkillIndicator />
       <Evolve />
       <Rebirth />
       <OfflineReward />
-      <SpeciesPicker />
+      <SpeciesPicker hatchOpen={hatchOpen} onClose={() => setHatchOpen(false)} />
     </div>
   );
 }

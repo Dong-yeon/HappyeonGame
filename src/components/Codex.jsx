@@ -1,29 +1,44 @@
 import { useEffect, useState } from 'react';
 import { evolutionData } from '../data/evolutionData.js';
-import { getSpecies } from '../game/species.js';
+import { SPECIES } from '../game/species.js';
 
-/** 도감 — 현재 종족의 진화 트리를 단계별로 보여주고, 발견한 형태를 표시 */
-export default function Codex() {
+/** 도감 — 전 종족의 진화 트리를 종족 탭으로 열람, 발견 현황 표시. 다른 알 부화 진입점. */
+export default function Codex({ onHatch }) {
   const [evo, setEvo] = useState(evolutionData.getState());
   const [open, setOpen] = useState(false);
+  const [view, setView] = useState(evo.species);
 
   useEffect(() => evolutionData.subscribe(setEvo), []);
 
-  const species = getSpecies(evo.species);
-  const forms = Object.entries(species.forms).map(([id, f]) => ({ id, ...f }));
+  const speciesKeys = Object.keys(SPECIES);
+  const allForms = speciesKeys.flatMap((k) => Object.keys(SPECIES[k].forms));
+  const totalDiscovered = allForms.filter((id) => evo.discovered.includes(id)).length;
+
+  const sp = SPECIES[view] || SPECIES[evo.species];
+  const forms = Object.entries(sp.forms).map(([id, f]) => ({ id, ...f }));
   const tiers = [...new Set(forms.map((f) => f.tier))].sort((a, b) => a - b);
-  const discoveredCount = forms.filter((f) => evo.discovered.includes(f.id)).length;
 
   return (
     <div className="codex">
       <button className="codex-toggle" onClick={() => setOpen((v) => !v)}>
-        📖 도감 {discoveredCount}/{forms.length}
+        📖 도감 {totalDiscovered}/{allForms.length}
         <span className="codex-toggle-label">{open ? '▲' : '▼'}</span>
       </button>
 
       {open && (
         <div className="codex-panel">
-          <div className="codex-title">{species.name} 진화도</div>
+          <div className="codex-tabs">
+            {speciesKeys.map((k) => (
+              <button
+                key={k}
+                className={`codex-tab${view === k ? ' active' : ''}${k === evo.species ? ' cur' : ''}`}
+                onClick={() => setView(k)}
+              >
+                {SPECIES[k].name}
+              </button>
+            ))}
+          </div>
+
           {tiers.map((tier) => (
             <div className="codex-tier" key={tier}>
               <span className="codex-tier-label">{tier}단계</span>
@@ -32,7 +47,7 @@ export default function Codex() {
                   .filter((f) => f.tier === tier)
                   .map((f) => {
                     const found = evo.discovered.includes(f.id);
-                    const current = f.id === evo.formId;
+                    const current = view === evo.species && f.id === evo.formId;
                     return (
                       <div
                         key={f.id}
@@ -48,7 +63,11 @@ export default function Codex() {
               </div>
             </div>
           ))}
-          <div className="codex-hint">육성 방향(공격/체력 훈련)에 따라 최종체가 갈립니다.</div>
+
+          <button className="codex-hatch" onClick={onHatch}>
+            🥚 다른 알 부화
+          </button>
+          <div className="codex-hint">부화하면 다른 요괴를 처음부터 육성 (도감·골드는 유지).</div>
         </div>
       )}
     </div>

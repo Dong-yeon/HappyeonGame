@@ -846,3 +846,89 @@ body,
 .skill-bar {
   height: 8px;
 }
+
+/* ===== 도감 종족 탭 & 부화 버튼 ===== */
+.codex-panel {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.codex-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+
+.codex-tab {
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: #b9b3c9;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.codex-tab.active {
+  background: rgba(102, 217, 232, 0.18);
+  border-color: #66d9e8;
+  color: #eaf6ff;
+}
+
+.codex-tab.cur::after {
+  content: ' ●';
+  color: #ffd782;
+  font-size: 9px;
+}
+
+.codex-hatch {
+  margin-top: 4px;
+  padding: 9px;
+  background: linear-gradient(180deg, #f6c453, #e8a020);
+  border: none;
+  border-radius: 8px;
+  color: #3a2600;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* ===== 알 부화 픽커 보강 ===== */
+.picker-cards {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.picker-card {
+  position: relative;
+}
+
+.picker-card.current {
+  opacity: 0.7;
+}
+
+.picker-current-tag {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #ffd782;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.picker-cancel {
+  margin-top: 16px;
+  padding: 9px 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 8px;
+  color: #d8d3e6;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}

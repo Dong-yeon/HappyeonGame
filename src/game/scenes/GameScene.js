@@ -64,12 +64,23 @@ export default class GameScene extends Phaser.Scene {
     this.lastSkillTime = 0;
     skillData.setSkill(evolutionData.getSkill());
 
-    // 진화 시: 요괴 색 갱신 + 스킬 교체 + 연출 (Player AI 로직은 건드리지 않음)
+    // 진화/부화 시: 요괴 색 갱신 + 스킬 교체 + 연출 (Player AI 로직은 건드리지 않음)
     let lastFormId = evolutionData.getState().formId;
     let lastTier = evolutionData.getState().tier;
+    let lastSpecies = evolutionData.getState().species;
     const unsubEvolution = evolutionData.subscribe((evo) => {
       this.player.setFillStyle(evo.color);
       skillData.setSkill(evolutionData.getSkill());
+      if (evo.species !== lastSpecies) {
+        // 부화(종족 전환): 적 정리 + 배경/배너, 진화 배너는 생략
+        lastSpecies = evo.species;
+        lastFormId = evo.formId;
+        lastTier = evo.tier;
+        this.enemies.getChildren().slice().forEach((e) => e.destroy());
+        this.applyStageBackground();
+        this.showBanner(`🥚 부화! 🥚\n${evo.speciesName}`, '#ffd782');
+        return;
+      }
       if (evo.formId !== lastFormId) {
         const forward = evo.tier > lastTier; // 전진 진화만 배너 (전생 회귀는 제외)
         lastFormId = evo.formId;
