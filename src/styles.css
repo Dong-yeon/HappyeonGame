@@ -618,3 +618,79 @@ body,
   text-align: center;
   line-height: 1.4;
 }
+
+/* ===== 요괴 종족 선택 ===== */
+.picker {
+  width: 560px;
+  max-width: calc(100% - 40px);
+  padding: 28px 24px;
+  background: linear-gradient(160deg, #23203f, #16132a);
+  border: 1px solid rgba(102, 217, 232, 0.4);
+  border-radius: 18px;
+  text-align: center;
+  color: #f0e6d2;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.picker-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #ffd782;
+}
+
+.picker-sub {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #b9b3c9;
+}
+
+.picker-cards {
+  margin-top: 20px;
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.picker-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 220px;
+  padding: 20px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid;
+  border-radius: 14px;
+  color: #f0e6d2;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.picker-card:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.picker-dot {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-bottom: 4px;
+}
+
+.picker-name {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.picker-root {
+  font-size: 12px;
+  color: #9db4d0;
+}
+
+.picker-finals {
+  font-size: 12px;
+  color: #8ce99a;
+  font-weight: 600;
+}

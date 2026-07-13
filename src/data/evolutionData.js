@@ -25,6 +25,7 @@ export function createEvolutionData() {
     formId: rootId,
     essence: 0,
     discovered: [rootId], // 도감: 지금까지 도달한 형태 id 목록
+    chosen: false, // 종족을 선택했는지 (신규 플레이어는 선택 화면 표시)
   };
 
   function forms() {
@@ -58,6 +59,7 @@ export function createEvolutionData() {
       isFinal: minCost == null,
       essenceReady: minCost != null && state.essence >= minCost,
       discovered: [...state.discovered],
+      chosen: state.chosen,
     };
   }
 
@@ -93,6 +95,18 @@ export function createEvolutionData() {
       if (amount <= 0) return;
       state.essence += amount;
       emit();
+    },
+
+    /** 종족 선택 (신규 플레이어). 성공 시 true */
+    chooseSpecies(key) {
+      if (!SPECIES[key]) return false;
+      state.species = key;
+      state.formId = SPECIES[key].root;
+      state.essence = 0;
+      state.discovered = [state.formId];
+      state.chosen = true;
+      emit();
+      return true;
     },
 
     /**
@@ -142,6 +156,7 @@ export function createEvolutionData() {
         formId: state.formId,
         essence: state.essence,
         discovered: [...state.discovered],
+        chosen: state.chosen,
       };
     },
 
@@ -156,6 +171,8 @@ export function createEvolutionData() {
         ? s.discovered.filter((id) => speciesForms[id])
         : [state.formId];
       markDiscovered(state.formId);
+      // 저장이 존재하면 이미 종족을 선택한 플레이어 (구버전 저장은 chosen 없음 → true 처리)
+      state.chosen = s.chosen ?? true;
       emit();
     },
   };

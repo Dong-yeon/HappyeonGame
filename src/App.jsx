@@ -5,6 +5,7 @@ import Codex from './components/Codex.jsx';
 import Care from './components/Care.jsx';
 import OfflineReward from './components/OfflineReward.jsx';
 import Evolve from './components/Evolve.jsx';
+import SpeciesPicker from './components/SpeciesPicker.jsx';
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
       <Care />
       <Evolve />
       <OfflineReward />
+      <SpeciesPicker />
     </div>
   );
 }
