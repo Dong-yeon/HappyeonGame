@@ -40,3 +40,13 @@ export const ENEMY = {
   SPAWN_INTERVAL: 1500, // 스폰 주기 (ms)
   MAX_COUNT: 6, // 맵에 동시에 존재하는 최대 적 수
 };
+
+export const BOSS = {
+  WIDTH: 56,
+  HEIGHT: 72,
+  COLOR: 0x8e44ad, // 보스: 보라색
+  MOVE_SPEED: 30, // 보스는 느리게 이동
+  HP_MUL: 10, // 같은 스테이지 일반 적 대비 체력 배율
+  DAMAGE_MUL: 1.6, // 접촉 피해 배율
+  EXP_MUL: 8, // 경험치 보상 배율
+};

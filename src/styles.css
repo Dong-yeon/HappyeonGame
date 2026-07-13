@@ -49,11 +49,25 @@ body,
   z-index: 10;
 }
 
+.hud-titlecol {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  white-space: nowrap;
+}
+
 .hud-title {
   font-weight: 700;
   font-size: 15px;
   color: #ffd782;
   white-space: nowrap;
+}
+
+.hud-stage {
+  font-size: 11px;
+  font-weight: 600;
+  color: #9db4d0;
+  letter-spacing: 0.3px;
 }
 
 .hud-level {
@@ -90,6 +104,14 @@ body,
 
 .bar-fill.exp {
   background: linear-gradient(90deg, #f9a825, #ffd54f);
+}
+
+.bar-fill.stage {
+  background: linear-gradient(90deg, #2f9e44, #8ce99a);
+}
+
+.bar-fill.stage.boss {
+  background: linear-gradient(90deg, #9c36b5, #e599f7);
 }
 
 .bar-label {
