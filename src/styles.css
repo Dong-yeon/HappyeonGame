@@ -303,3 +303,62 @@ body,
   font-weight: 700;
   cursor: pointer;
 }
+
+/* ===== 진화(정기) HUD ===== */
+.hud-species {
+  font-size: 12px;
+  font-weight: 500;
+  color: #b9b3c9;
+}
+
+.bar-fill.essence {
+  background: linear-gradient(90deg, #1098ad, #66d9e8);
+}
+
+/* ===== 진화/승천 버튼 ===== */
+.evolve {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+}
+
+.evolve-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 28px;
+  background: linear-gradient(180deg, #3bc9db, #1098ad);
+  border: 2px solid #99e9f2;
+  border-radius: 999px;
+  color: #04252b;
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 0 24px rgba(102, 217, 232, 0.6);
+  animation: evolvePulse 1.2s ease-in-out infinite;
+}
+
+.evolve-spark {
+  font-size: 20px;
+}
+
+.evolve-sub {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.75;
+  margin-left: 2px;
+}
+
+@keyframes evolvePulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 24px rgba(102, 217, 232, 0.55);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 0 34px rgba(102, 217, 232, 0.85);
+  }
+}

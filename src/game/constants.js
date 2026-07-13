@@ -19,7 +19,7 @@ export const PLATFORMS = [
 export const PLAYER = {
   WIDTH: 32,
   HEIGHT: 48,
-  COLOR: 0x4dabf7, // 화랑: 파란색
+  COLOR: 0x2f9e44, // 요괴 기본색 (실제 색은 진화 단계에 따라 evolutionData 가 결정)
   MOVE_SPEED: 170, // 이동 속도 (px/s)
   JUMP_VELOCITY: -600,
   ATTACK_RANGE: 95, // 공격 사거리 (px)
@@ -32,7 +32,7 @@ export const PLAYER = {
 export const ENEMY = {
   WIDTH: 30,
   HEIGHT: 40,
-  COLOR: 0xe63946, // 적: 빨간색
+  COLOR: 0xc9a26b, // 인간 병사: 갑주(가죽/청동)색
   MOVE_SPEED: 45, // 좌우 배회 속도 (px/s)
   HP: 20,
   DAMAGE: 10, // 접촉 피해
@@ -44,12 +44,18 @@ export const ENEMY = {
 export const BOSS = {
   WIDTH: 56,
   HEIGHT: 72,
-  COLOR: 0x8e44ad, // 보스: 보라색
+  COLOR: 0x845ef7, // 인간 장수/퇴마사: 남보라색
   MOVE_SPEED: 30, // 보스는 느리게 이동
   HP_MUL: 10, // 같은 스테이지 일반 적 대비 체력 배율
   DAMAGE_MUL: 1.6, // 접촉 피해 배율
   EXP_MUL: 8, // 경험치 보상 배율
   GOLD_MUL: 10, // 골드 보상 배율
+  ESSENCE_MUL: 12, // 정기 보상 배율 (보스 포식)
+};
+
+export const ESSENCE = {
+  PER_HUMAN: 8, // 인간 1명 포식당 기본 정기
+  PER_STAGE: 4, // 스테이지(0-base index)당 추가 정기
 };
 
 export const GOLD = {

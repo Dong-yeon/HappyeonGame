@@ -9,10 +9,12 @@ import {
   ENEMY,
   BOSS,
   GOLD,
+  ESSENCE,
 } from '../constants.js';
 import { playerData } from '../../data/playerData.js';
 import { stageData } from '../../data/stageData.js';
 import { economyData } from '../../data/economyData.js';
+import { evolutionData } from '../../data/evolutionData.js';
 
 /**
  * 메인 사냥터 씬 — 고정 크기 맵 (메이플스토리 일반 사냥터 방식) + 스테이지 진행 구조.
@@ -50,9 +52,24 @@ export default class GameScene extends Phaser.Scene {
       this.walls.add(wall);
     });
 
-    // ===== 플레이어 (바닥 위에서 시작) =====
+    // ===== 플레이어(요괴, 바닥 위에서 시작) — 현재 진화 단계 색 적용 =====
     const groundTop = PLATFORMS[0].y - PLATFORMS[0].height / 2;
     this.player = new Player(this, 220, groundTop - 80, playerData);
+    this.player.setFillStyle(evolutionData.getColor());
+
+    // 진화 시: 요괴 색 갱신 + 연출 (Player AI 로직은 건드리지 않음)
+    let lastFormIndex = evolutionData.getState().formIndex;
+    const unsubEvolution = evolutionData.subscribe((evo) => {
+      this.player.setFillStyle(evo.color);
+      if (evo.formIndex > lastFormIndex) {
+        lastFormIndex = evo.formIndex;
+        const label = evo.isFinal ? `✦ 승천! ✦\n${evo.formName}` : `✦ 진화! ✦\n${evo.formName}`;
+        this.showBanner(label, '#ffe08a');
+      }
+    });
+    // 씬 종료 시 구독 해제 (싱글턴 모듈이 파괴된 씬을 참조하지 않도록)
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, unsubEvolution);
+    this.events.once(Phaser.Scenes.Events.DESTROY, unsubEvolution);
 
     this.physics.add.collider(this.player, this.platforms);
     this.physics.add.collider(this.player, this.walls);
@@ -88,6 +105,11 @@ export default class GameScene extends Phaser.Scene {
       const gold = this.rollGold(isBoss);
       economyData.gainGold(gold);
       this.showFloatingText(x + 14, y - 30, `+${gold} G`, '#ffd166');
+
+      // 정기 획득 (인간 포식 → 진화 재화)
+      const essence = this.rollEssence(isBoss);
+      evolutionData.gainEssence(essence);
+      this.showFloatingText(x - 14, y - 48, `+${essence} 정기`, '#8ce9ff');
 
       if (leveledUp) {
         this.showFloatingText(
@@ -177,6 +199,13 @@ export default class GameScene extends Phaser.Scene {
     const base = GOLD.ENEMY_BASE + idx * GOLD.ENEMY_PER_STAGE;
     const raw = isBoss ? base * BOSS.GOLD_MUL : base;
     return Math.max(1, Math.round(raw * economyData.getGoldMultiplier()));
+  }
+
+  /** 포식 시 정기량 계산 (스테이지 스케일, 보스 가중) */
+  rollEssence(isBoss) {
+    const idx = this.stageData.getState().stageIndex;
+    const base = ESSENCE.PER_HUMAN + idx * ESSENCE.PER_STAGE;
+    return Math.max(1, Math.round(isBoss ? base * BOSS.ESSENCE_MUL : base));
   }
 
   /** 보스 처치 → 스테이지 클리어 → 다음 스테이지 */

@@ -8,6 +8,7 @@
 import { playerData } from './playerData.js';
 import { stageData } from './stageData.js';
 import { economyData } from './economyData.js';
+import { evolutionData } from './evolutionData.js';
 
 const ENDPOINT = '/api/save';
 const USER_ID = 'local'; // 단일 플레이어 프로토타입 (멀티유저는 추후 인증 연동)
@@ -22,6 +23,7 @@ function gather() {
     player: playerData.getSaveState(),
     stage: stageData.getSaveState(),
     economy: economyData.getSaveState(),
+    evolution: evolutionData.getSaveState(),
   };
 }
 
@@ -65,6 +67,7 @@ function startAutoSave() {
   playerData.subscribe(scheduleSave);
   stageData.subscribe(scheduleSave);
   economyData.subscribe(scheduleSave);
+  evolutionData.subscribe(scheduleSave);
   if (typeof window !== 'undefined') {
     setInterval(save, INTERVAL_MS);
     window.addEventListener('beforeunload', saveOnExit);
@@ -91,6 +94,7 @@ export const saveManager = {
         mode = 'server'; // 신규 플레이어 — 복원할 데이터 없음
       } else if (res.ok) {
         const data = await res.json();
+        evolutionData.loadSaveState(data.evolution); // 스탯 배율 먼저 복원 (playerData 가 참조)
         playerData.loadSaveState(data.player);
         stageData.loadSaveState(data.stage);
         economyData.loadSaveState(data.economy);
