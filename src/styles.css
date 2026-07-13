@@ -315,50 +315,183 @@ body,
   background: linear-gradient(90deg, #1098ad, #66d9e8);
 }
 
-/* ===== 진화/승천 버튼 ===== */
+/* ===== 진화 갈래 선택 패널 ===== */
 .evolve {
   position: absolute;
-  bottom: 28px;
+  bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 40;
-}
-
-.evolve-btn {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 14px 28px;
-  background: linear-gradient(180deg, #3bc9db, #1098ad);
-  border: 2px solid #99e9f2;
-  border-radius: 999px;
-  color: #04252b;
-  font-size: 18px;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(12, 20, 30, 0.92);
+  border: 1px solid #3bc9db;
+  border-radius: 14px;
+  box-shadow: 0 0 28px rgba(102, 217, 232, 0.4);
+  animation: evolveGlow 1.6s ease-in-out infinite;
+}
+
+.evolve-title {
+  font-size: 14px;
   font-weight: 800;
+  color: #66d9e8;
+  letter-spacing: 0.5px;
+}
+
+.evolve-options {
+  display: flex;
+  gap: 10px;
+}
+
+.evolve-opt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 92px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid #3bc9db;
+  border-radius: 10px;
+  color: #eaf6ff;
   cursor: pointer;
-  box-shadow: 0 0 24px rgba(102, 217, 232, 0.6);
-  animation: evolvePulse 1.2s ease-in-out infinite;
 }
 
-.evolve-spark {
-  font-size: 20px;
+.evolve-opt.locked {
+  border-color: rgba(255, 255, 255, 0.15);
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
-.evolve-sub {
+.evolve-opt-name {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.evolve-opt-meta {
   font-size: 11px;
+  color: #9fb6c4;
   font-weight: 600;
-  opacity: 0.75;
-  margin-left: 2px;
 }
 
-@keyframes evolvePulse {
+@keyframes evolveGlow {
   0%,
   100% {
-    transform: scale(1);
-    box-shadow: 0 0 24px rgba(102, 217, 232, 0.55);
+    box-shadow: 0 0 22px rgba(102, 217, 232, 0.35);
   }
   50% {
-    transform: scale(1.06);
-    box-shadow: 0 0 34px rgba(102, 217, 232, 0.85);
+    box-shadow: 0 0 34px rgba(102, 217, 232, 0.7);
   }
+}
+
+/* ===== 도감 (Codex) ===== */
+.codex {
+  position: absolute;
+  top: 92px;
+  left: 16px;
+  width: 260px;
+  max-width: calc(100% - 32px);
+  z-index: 20;
+  font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+}
+
+.codex-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  background: rgba(20, 18, 40, 0.9);
+  border: 1px solid rgba(102, 217, 232, 0.5);
+  border-radius: 9px;
+  color: #99e9f2;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.codex-toggle-label {
+  margin-left: auto;
+  font-size: 12px;
+  color: #c7c1d8;
+}
+
+.codex-panel {
+  margin-top: 8px;
+  padding: 12px;
+  background: rgba(20, 18, 40, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.codex-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #99e9f2;
+}
+
+.codex-tier {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.codex-tier-label {
+  font-size: 10px;
+  color: #7d7893;
+  font-weight: 600;
+}
+
+.codex-forms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.codex-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 7px;
+}
+
+.codex-form.locked .codex-form-name {
+  color: #6b6480;
+}
+
+.codex-form.current {
+  box-shadow: 0 0 0 2px #ffd782 inset;
+}
+
+.codex-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.codex-form-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #f0e6d2;
+}
+
+.codex-form-mult {
+  font-size: 10px;
+  color: #8ce99a;
+  font-weight: 700;
+}
+
+.codex-hint {
+  font-size: 10px;
+  color: #7d7893;
+  text-align: center;
 }

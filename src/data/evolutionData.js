@@ -1,44 +1,63 @@
 /**
- * 진화/승천 데이터 모듈 — 현재 요괴 종족 / 진화 단계 / 정기.
+ * 진화/도감 데이터 모듈 — 분기 진화 트리(디지몬식).
  *
- * 인간을 포식해 정기를 모으고, 충분히 모이면 다음 단계로 진화한다 (능력치 배율 상승).
- * playerData·stageData·economyData 와 동일한 순수 모듈 + 구독 패턴.
- * 능력치 배율은 값으로만 계산하고, 실제 스탯 반영은 playerData 가 구독해서 처리한다.
+ * 현재 종족/형태(formId)/정기/도감(발견한 형태 목록)을 관리한다.
+ * 같은 요괴라도 육성 방향(진화 조건)에 따라 다른 최종체로 갈린다.
+ *
+ * 진화 조건 평가에 필요한 외부 맥락(context, 예: 우세 스탯)은 호출부가 넘겨준다
+ * → 이 모듈은 economyData/playerData 에 의존하지 않는 순수 모듈로 유지.
  */
-import { SPECIES, DEFAULT_SPECIES, getForms } from '../game/species.js';
+import { SPECIES, DEFAULT_SPECIES, getSpecies } from '../game/species.js';
+
+/** 진화 조건이 맥락(context)에 부합하는지 */
+function meetsRequires(requires, context) {
+  if (!requires) return true;
+  if (requires.dominant) return (context && context.dominant) === requires.dominant;
+  return true;
+}
 
 export function createEvolutionData() {
   const listeners = new Set();
 
+  const rootId = SPECIES[DEFAULT_SPECIES].root;
   const state = {
     species: DEFAULT_SPECIES,
-    formIndex: 0,
+    formId: rootId,
     essence: 0,
+    discovered: [rootId], // 도감: 지금까지 도달한 형태 id 목록
   };
 
   function forms() {
-    return getForms(state.species);
+    return getSpecies(state.species).forms;
   }
 
   function currentForm() {
-    return forms()[state.formIndex];
+    return forms()[state.formId];
   }
 
-  /** 외부로 내보내는 파생 스냅샷 */
+  /** 현재 형태에서 나갈 수 있는 갈래들의 최소 정기 비용 (없으면 null = 최종) */
+  function minEssenceCost() {
+    const branches = currentForm().evolveTo;
+    if (!branches.length) return null;
+    return Math.min(...branches.map((b) => b.essence));
+  }
+
   function snapshot() {
     const form = currentForm();
-    const isFinal = form.essenceToEvolve == null;
+    const minCost = minEssenceCost();
     return {
       species: state.species,
-      speciesName: SPECIES[state.species].name,
-      formIndex: state.formIndex,
+      speciesName: getSpecies(state.species).name,
+      formId: state.formId,
       formName: form.name,
       color: form.color,
+      tier: form.tier,
       multiplier: form.mult,
       essence: state.essence,
-      essenceToEvolve: form.essenceToEvolve, // null = 최종(승천)
-      canEvolve: !isFinal && state.essence >= form.essenceToEvolve,
-      isFinal,
+      essenceToEvolve: minCost, // null = 최종(승천)
+      isFinal: minCost == null,
+      essenceReady: minCost != null && state.essence >= minCost,
+      discovered: [...state.discovered],
     };
   }
 
@@ -47,17 +66,19 @@ export function createEvolutionData() {
     listeners.forEach((fn) => fn(snap));
   }
 
+  function markDiscovered(id) {
+    if (!state.discovered.includes(id)) state.discovered.push(id);
+  }
+
   return {
     getState() {
       return snapshot();
     },
 
-    /** 능력치 배율 (playerData 가 구독해서 반영) */
     getMultiplier() {
       return currentForm().mult;
     },
 
-    /** 현재 형태 색 (임시 스프라이트) */
     getColor() {
       return currentForm().color;
     },
@@ -68,20 +89,47 @@ export function createEvolutionData() {
       return () => listeners.delete(fn);
     },
 
-    /** 인간 포식으로 정기 획득 */
     gainEssence(amount) {
       if (amount <= 0) return;
       state.essence += amount;
       emit();
     },
 
-    /** 다음 단계로 진화 (성공 시 true) */
-    evolve() {
-      const form = currentForm();
-      if (form.essenceToEvolve == null) return false; // 이미 최종(승천)
-      if (state.essence < form.essenceToEvolve) return false;
-      state.essence -= form.essenceToEvolve; // 초과분은 이월
-      state.formIndex += 1;
+    /**
+     * 현재 형태에서 가능한 진화 갈래 목록 (조건 평가 포함).
+     * context 예: { dominant: 'attack' | 'hp' | 'balanced' }
+     */
+    getAvailableEvolutions(context) {
+      const all = forms();
+      return currentForm().evolveTo.map((b) => {
+        const target = all[b.to];
+        const essenceMet = state.essence >= b.essence;
+        const unlocked = meetsRequires(b.requires, context);
+        return {
+          to: b.to,
+          name: target.name,
+          color: target.color,
+          tier: target.tier,
+          multiplier: target.mult,
+          essenceCost: b.essence,
+          essenceMet,
+          unlocked,
+          hint: b.hint || null,
+          discovered: state.discovered.includes(b.to),
+          canTake: essenceMet && unlocked,
+        };
+      });
+    },
+
+    /** 특정 갈래로 진화 (조건·정기 충족 시). 성공하면 true */
+    evolve(toFormId, context) {
+      const branch = currentForm().evolveTo.find((b) => b.to === toFormId);
+      if (!branch) return false;
+      if (state.essence < branch.essence) return false;
+      if (!meetsRequires(branch.requires, context)) return false;
+      state.essence -= branch.essence; // 초과분 이월
+      state.formId = toFormId;
+      markDiscovered(toFormId);
       emit();
       return true;
     },
@@ -91,17 +139,23 @@ export function createEvolutionData() {
     getSaveState() {
       return {
         species: state.species,
-        formIndex: state.formIndex,
+        formId: state.formId,
         essence: state.essence,
+        discovered: [...state.discovered],
       };
     },
 
     loadSaveState(s) {
       if (!s) return;
-      state.species = s.species && SPECIES[s.species] ? s.species : DEFAULT_SPECIES;
-      const maxIndex = getForms(state.species).length - 1;
-      state.formIndex = Math.min(Math.max(0, s.formIndex ?? 0), maxIndex);
+      const speciesKey = s.species && SPECIES[s.species] ? s.species : DEFAULT_SPECIES;
+      const speciesForms = getSpecies(speciesKey).forms;
+      state.species = speciesKey;
+      state.formId = s.formId && speciesForms[s.formId] ? s.formId : getSpecies(speciesKey).root;
       state.essence = s.essence ?? 0;
+      state.discovered = Array.isArray(s.discovered) && s.discovered.length
+        ? s.discovered.filter((id) => speciesForms[id])
+        : [state.formId];
+      markDiscovered(state.formId);
       emit();
     },
   };

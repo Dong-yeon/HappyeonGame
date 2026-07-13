@@ -58,11 +58,11 @@ export default class GameScene extends Phaser.Scene {
     this.player.setFillStyle(evolutionData.getColor());
 
     // 진화 시: 요괴 색 갱신 + 연출 (Player AI 로직은 건드리지 않음)
-    let lastFormIndex = evolutionData.getState().formIndex;
+    let lastFormId = evolutionData.getState().formId;
     const unsubEvolution = evolutionData.subscribe((evo) => {
       this.player.setFillStyle(evo.color);
-      if (evo.formIndex > lastFormIndex) {
-        lastFormIndex = evo.formIndex;
+      if (evo.formId !== lastFormId) {
+        lastFormId = evo.formId;
         const label = evo.isFinal ? `✦ 승천! ✦\n${evo.formName}` : `✦ 진화! ✦\n${evo.formName}`;
         this.showBanner(label, '#ffe08a');
       }
