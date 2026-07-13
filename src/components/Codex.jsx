@@ -48,7 +48,7 @@ export default function Codex() {
               </div>
             </div>
           ))}
-          <div className="codex-hint">육성 방향(상점 공격/체력 투자)에 따라 최종체가 갈립니다.</div>
+          <div className="codex-hint">육성 방향(공격/체력 훈련)에 따라 최종체가 갈립니다.</div>
         </div>
       )}
     </div>

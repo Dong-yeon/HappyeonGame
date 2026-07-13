@@ -495,3 +495,126 @@ body,
   color: #7d7893;
   text-align: center;
 }
+
+/* ===== 육성(케어) 패널 ===== */
+.care {
+  position: absolute;
+  bottom: 24px;
+  left: 16px;
+  width: 240px;
+  max-width: calc(100% - 32px);
+  z-index: 20;
+  font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+}
+
+.care-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  background: rgba(20, 18, 40, 0.9);
+  border: 1px solid rgba(140, 233, 154, 0.5);
+  border-radius: 9px;
+  color: #8ce99a;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.care-toggle-label {
+  margin-left: auto;
+  font-size: 12px;
+  color: #c7c1d8;
+}
+
+.care-panel {
+  margin-bottom: 8px;
+  order: -1;
+  padding: 12px;
+  background: rgba(20, 18, 40, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.care {
+  display: flex;
+  flex-direction: column;
+}
+
+.care-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.care-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #b9b3c9;
+  white-space: nowrap;
+}
+
+.care-bar {
+  flex: 1;
+}
+
+.bar-fill.care {
+  background: linear-gradient(90deg, #f76707, #ffa94d);
+}
+
+.bar-fill.care.starving {
+  background: linear-gradient(90deg, #c92a2a, #e03131);
+}
+
+.care-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.care-btn.feed {
+  background: linear-gradient(180deg, #f9a825, #f08c00);
+  color: #2b1a00;
+}
+
+.care-train {
+  display: flex;
+  gap: 8px;
+}
+
+.care-btn.train {
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #eaf6ff;
+}
+
+.care-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.care-btn-sub {
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.care-hint {
+  font-size: 10px;
+  color: #9db4d0;
+  text-align: center;
+  line-height: 1.4;
+}

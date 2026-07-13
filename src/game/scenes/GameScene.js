@@ -15,6 +15,7 @@ import { playerData } from '../../data/playerData.js';
 import { stageData } from '../../data/stageData.js';
 import { economyData } from '../../data/economyData.js';
 import { evolutionData } from '../../data/evolutionData.js';
+import { careData } from '../../data/careData.js';
 
 /**
  * 메인 사냥터 씬 — 고정 크기 맵 (메이플스토리 일반 사냥터 방식) + 스테이지 진행 구조.
@@ -101,13 +102,16 @@ export default class GameScene extends Phaser.Scene {
       const leveledUp = this.playerData.gainExp(exp);
       this.showFloatingText(x, y - 30, `+${exp} EXP`, '#ffd54f');
 
-      // 골드 드랍 (스테이지 스케일 × 업그레이드 배율)
-      const gold = this.rollGold(isBoss);
+      // 컨디션(탈진) 시 획득 효율 감소
+      const gainMul = careData.getGainMultiplier();
+
+      // 골드 드랍 (스테이지 스케일 × 업그레이드 배율 × 컨디션)
+      const gold = Math.max(1, Math.round(this.rollGold(isBoss) * gainMul));
       economyData.gainGold(gold);
       this.showFloatingText(x + 14, y - 30, `+${gold} G`, '#ffd166');
 
-      // 정기 획득 (인간 포식 → 진화 재화)
-      const essence = this.rollEssence(isBoss);
+      // 정기 획득 (인간 포식 → 진화 재화, 컨디션 반영)
+      const essence = Math.max(1, Math.round(this.rollEssence(isBoss) * gainMul));
       evolutionData.gainEssence(essence);
       this.showFloatingText(x - 14, y - 48, `+${essence} 정기`, '#8ce9ff');
 

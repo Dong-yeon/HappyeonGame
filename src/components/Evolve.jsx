@@ -1,23 +1,22 @@
 import { useEffect, useState } from 'react';
 import { evolutionData } from '../data/evolutionData.js';
-import { economyData } from '../data/economyData.js';
+import { careData } from '../data/careData.js';
 
 /**
  * 진화 갈래 선택 패널 — 정기가 충만하면 하단 중앙에 나타난다.
- * 육성 방향(상점 공격/체력 투자)에 따라 갈래가 잠금/해금되며, 해금된 갈래를 골라 진화한다.
+ * 육성 방향(공격/체력 훈련)에 따라 갈래가 잠금/해금되며, 해금된 갈래를 골라 진화한다.
  */
 export default function Evolve() {
   const [evo, setEvo] = useState(evolutionData.getState());
-  const [eco, setEco] = useState(economyData.getState());
+  const [care, setCare] = useState(careData.getState());
 
   useEffect(() => evolutionData.subscribe(setEvo), []);
-  useEffect(() => economyData.subscribe(setEco), []);
+  useEffect(() => careData.subscribe(setCare), []);
 
   if (!evo.essenceReady) return null;
 
-  // 우세 스탯 = 상점에서 공격/체력 중 더 많이 투자한 쪽 → 진화 갈래 조건
-  const { attack, maxHp } = eco.upgrades;
-  const dominant = attack > maxHp ? 'attack' : maxHp > attack ? 'hp' : 'balanced';
+  // 우세 훈련 방향 → 진화 갈래 조건
+  const dominant = care.dominant;
   const options = evolutionData.getAvailableEvolutions({ dominant });
   const multiple = options.length > 1;
 

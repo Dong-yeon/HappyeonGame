@@ -9,6 +9,7 @@ import { playerData } from './playerData.js';
 import { stageData } from './stageData.js';
 import { economyData } from './economyData.js';
 import { evolutionData } from './evolutionData.js';
+import { careData } from './careData.js';
 
 const ENDPOINT = '/api/save';
 const USER_ID = 'local'; // 단일 플레이어 프로토타입 (멀티유저는 추후 인증 연동)
@@ -24,6 +25,7 @@ function gather() {
     stage: stageData.getSaveState(),
     economy: economyData.getSaveState(),
     evolution: evolutionData.getSaveState(),
+    care: careData.getSaveState(),
   };
 }
 
@@ -68,6 +70,8 @@ function startAutoSave() {
   stageData.subscribe(scheduleSave);
   economyData.subscribe(scheduleSave);
   evolutionData.subscribe(scheduleSave);
+  // careData 는 구독하지 않음: 포만감 감소(tick)마다 저장되면 과도함.
+  // 훈련→playerData, 먹이→economy 변경으로 저장이 걸리고, 주기 저장(15s)이 백업.
   if (typeof window !== 'undefined') {
     setInterval(save, INTERVAL_MS);
     window.addEventListener('beforeunload', saveOnExit);
@@ -95,6 +99,7 @@ export const saveManager = {
       } else if (res.ok) {
         const data = await res.json();
         evolutionData.loadSaveState(data.evolution); // 스탯 배율 먼저 복원 (playerData 가 참조)
+        careData.loadSaveState(data.care); // 훈련 보너스도 먼저 복원
         playerData.loadSaveState(data.player);
         stageData.loadSaveState(data.stage);
         economyData.loadSaveState(data.economy);

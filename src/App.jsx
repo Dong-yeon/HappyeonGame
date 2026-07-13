@@ -2,6 +2,7 @@ import PhaserGame from './game/PhaserGame.jsx';
 import HUD from './components/HUD.jsx';
 import Shop from './components/Shop.jsx';
 import Codex from './components/Codex.jsx';
+import Care from './components/Care.jsx';
 import OfflineReward from './components/OfflineReward.jsx';
 import Evolve from './components/Evolve.jsx';
 
@@ -12,6 +13,7 @@ export default function App() {
       <HUD />
       <Shop />
       <Codex />
+      <Care />
       <Evolve />
       <OfflineReward />
     </div>

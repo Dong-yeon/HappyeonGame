@@ -7,6 +7,7 @@
  */
 import { economyData } from './economyData.js';
 import { evolutionData } from './evolutionData.js';
+import { careData } from './careData.js';
 
 const EXP_BASE = 20; // 레벨 1→2 필요 경험치
 const EXP_GROWTH = 1.4; // 레벨당 필요 경험치 증가율
@@ -43,11 +44,12 @@ export function createPlayerData() {
   function applyStats({ fullHeal = false } = {}) {
     const base = baseStatsForLevel(state.level);
     const bonus = economyData.getBonuses();
+    const care = careData.getStatBonus(); // 훈련 보너스
     const mult = evolutionData.getMultiplier(); // 진화 단계 배율
-    const newMax = Math.round((base.maxHp + bonus.maxHp) * mult);
+    const newMax = Math.round((base.maxHp + bonus.maxHp + care.hp) * mult);
     const delta = newMax - state.maxHp;
     state.maxHp = newMax;
-    state.attackPower = Math.round((base.attackPower + bonus.attack) * mult);
+    state.attackPower = Math.round((base.attackPower + bonus.attack + care.attack) * mult);
     if (fullHeal) {
       state.hp = newMax;
     } else {
@@ -63,11 +65,12 @@ export function createPlayerData() {
   // 초기 스탯 설정 (레벨1 + 저장된 업그레이드 반영)
   applyStats({ fullHeal: true });
 
-  // 업그레이드/진화 변경 시 스탯 반영 (보너스·배율이 실제로 바뀐 경우에만)
+  // 업그레이드/진화/훈련 변경 시 스탯 반영 (보너스·배율이 실제로 바뀐 경우에만)
   let lastStatSig = '';
   function syncFromModifiers() {
     const b = economyData.getBonuses();
-    const sig = `${b.attack}/${b.maxHp}/${evolutionData.getMultiplier()}`;
+    const c = careData.getStatBonus();
+    const sig = `${b.attack}/${b.maxHp}/${evolutionData.getMultiplier()}/${c.attack}/${c.hp}`;
     if (sig === lastStatSig) return;
     lastStatSig = sig;
     applyStats({ fullHeal: false });
@@ -75,6 +78,7 @@ export function createPlayerData() {
   }
   economyData.subscribe(syncFromModifiers);
   evolutionData.subscribe(syncFromModifiers);
+  careData.subscribe(syncFromModifiers);
 
   return {
     /** 현재 상태 스냅샷 (읽기 전용 복사본) */

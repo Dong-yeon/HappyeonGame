@@ -156,6 +156,16 @@ export function createEconomyData() {
       return 1 + state.upgrades.goldGain * UPGRADES.goldGain.perLevel;
     },
 
+    /** 골드 소비 (부족하면 false) — 먹이 주기 등에 사용 */
+    spendGold(amount) {
+      if (amount <= 0) return true;
+      if (state.gold < amount) return false;
+      state.gold -= amount;
+      persist();
+      emit();
+      return true;
+    },
+
     // ===== 업그레이드 =====
 
     /** 스탯 보너스 (playerData 가 구독해서 반영) */

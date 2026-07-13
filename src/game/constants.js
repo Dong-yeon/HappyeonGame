@@ -58,6 +58,18 @@ export const ESSENCE = {
   PER_STAGE: 4, // 스테이지(0-base index)당 추가 정기
 };
 
+export const CARE = {
+  MAX_FULLNESS: 100,
+  FEED_AMOUNT: 25, // 먹이 1회당 포만감 회복
+  FEED_COST: 15, // 먹이 1회 골드 비용
+  TRAIN_COST: 20, // 훈련 1회당 소모 포만감(에너지)
+  DECAY_PER_MIN: 2, // 분당 포만감 감소량 (약 50분에 완전 허기)
+  STARVING_BELOW: 15, // 이 미만이면 탈진 상태
+  STARVING_GAIN_MUL: 0.5, // 탈진 시 정기/골드 획득 배율
+  TRAIN_ATTACK_BONUS: 2, // 공격 훈련치 1당 공격력 +2
+  TRAIN_HP_BONUS: 15, // 체력 훈련치 1당 최대 HP +15
+};
+
 export const GOLD = {
   ENEMY_BASE: 4, // 일반 적 기본 골드
   ENEMY_PER_STAGE: 2, // 스테이지(0-base index)당 추가 골드
