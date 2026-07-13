@@ -39,10 +39,11 @@ src/
 │   ├── HUD.jsx               # React HUD (스테이지/HP/레벨/경험치/진행)
 │   ├── Shop.jsx              # 업그레이드 상점 (골드 소비)
 │   └── OfflineReward.jsx     # 오프라인 보상 모달
-├── data/                     # 순수 데이터 모듈 (백엔드 연동 지점, 구독 패턴)
+├── data/                     # 순수 데이터 모듈 (구독 패턴)
 │   ├── playerData.js         # 레벨/경험치/스탯 (업그레이드 보너스 반영)
 │   ├── stageData.js          # 스테이지 진행 상태
-│   └── economyData.js        # 골드/업그레이드/오프라인 (localStorage 영속)
+│   ├── economyData.js        # 골드/업그레이드/오프라인
+│   └── saveManager.js        # 서버 저장/복원 오케스트레이터 (+ localStorage 폴백)
 └── game/
     ├── PhaserGame.jsx        # Phaser <-> React 래퍼 컴포넌트
     ├── config.js             # Phaser 게임 설정
@@ -53,11 +54,26 @@ src/
     └── entities/
         ├── Player.js         # 화랑 (가장 가까운 적 자동 타겟팅)
         └── Enemy.js          # 적/보스 (옵션으로 스탯 조정)
+
+backend/                      # Spring Boot + SQLite 저장 API (backend/README.md)
 ```
 
-## Spring Boot 백엔드 연동 지점
+## Spring Boot 백엔드 연동 (구현됨)
 
-- `src/data/` 의 각 모듈(`playerData`/`stageData`/`economyData`)에 `loadFromServer()` / `saveToServer()` 스텁 준비됨
-- 현재 `economyData` 는 localStorage 로 영속화 → 추후 서버 저장으로 교체
+전체 저장(레벨·경험치·스테이지·골드·업그레이드)이 Spring Boot + SQLite 백엔드에 영속화된다.
+
+- **백엔드**: `backend/` — Spring Boot 3.3 (Java 21) + SQLite. 실행법·API 는 [backend/README.md](./backend/README.md) 참고
+- **프론트 연동**: `src/data/saveManager.js` 가 부팅 시 `GET /api/save` 로 복원, 변경/주기/종료 시 저장
+- 각 데이터 모듈은 `getSaveState()` / `loadSaveState()` 로 직렬화·복원 (I/O 는 saveManager 가 담당)
+- **오프라인 보상**은 서버가 기록한 `lastSeen` 기준으로 계산
+- **백엔드 미기동 시 localStorage 폴백** — 프론트 단독 실행 가능
 - `vite.config.js` 에 `/api` → `http://localhost:8080` 프록시 설정 완료
-- 게임 로직(Phaser)과 데이터 모듈이 분리되어 있어 저장 방식 교체가 쉬움
+
+### 함께 실행
+
+```bash
+# 터미널 1 — 백엔드
+cd backend && mvn spring-boot:run
+# 터미널 2 — 프론트
+npm run dev
+```

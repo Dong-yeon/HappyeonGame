@@ -80,17 +80,25 @@ export function createStageData() {
       emit();
     },
 
-    // ===== 백엔드 연동 지점 (Spring Boot) =====
+    // ===== 저장/복원 (saveManager 가 서버 I/O 를 담당) =====
 
-    /** GET /api/stage — 저장된 진행 상황 불러오기 */
-    async loadFromServer() {
-      // TODO: const res = await fetch('/api/stage');
-      //       Object.assign(state, await res.json()); syncStage(); emit();
+    /** 서버 저장용 직렬화 (보스 상태는 일시적이므로 저장 안 함) */
+    getSaveState() {
+      return {
+        stageIndex: state.stageIndex,
+        kills: state.kills,
+      };
     },
 
-    /** PUT /api/stage — 현재 진행 상황 저장 */
-    async saveToServer() {
-      // TODO: await fetch('/api/stage', { method: 'PUT', ... });
+    /** 서버에서 받은 상태로 복원 */
+    loadSaveState(s) {
+      if (!s) return;
+      state.stageIndex = s.stageIndex ?? 0;
+      state.bossActive = false;
+      syncStage();
+      // 돌파 수는 목표 미만으로 클램프 (복원 직후 즉시 보스 소환 방지)
+      state.kills = Math.min(s.kills ?? 0, Math.max(0, state.killsToClear - 1));
+      emit();
     },
   };
 }

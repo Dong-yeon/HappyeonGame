@@ -125,19 +125,30 @@ export function createPlayerData() {
       emit();
     },
 
-    // ===== 백엔드 연동 지점 (Spring Boot) =====
+    // ===== 저장/복원 (saveManager 가 서버 I/O 를 담당) =====
 
-    /** GET /api/player — 서버에서 저장된 데이터 불러오기 */
-    async loadFromServer() {
-      // TODO: const res = await fetch('/api/player');
-      //       Object.assign(state, await res.json()); emit();
+    /** 서버 저장용 직렬화 (스탯은 레벨+업그레이드로 파생되므로 저장 안 함) */
+    getSaveState() {
+      return {
+        level: state.level,
+        exp: state.exp,
+        hp: state.hp,
+        kills: state.kills,
+      };
     },
 
-    /** PUT /api/player — 서버에 현재 데이터 저장 */
-    async saveToServer() {
-      // TODO: await fetch('/api/player', { method: 'PUT',
-      //         headers: { 'Content-Type': 'application/json' },
-      //         body: JSON.stringify(state) });
+    /** 서버에서 받은 상태로 복원 */
+    loadSaveState(s) {
+      if (!s) return;
+      state.level = s.level ?? 1;
+      state.exp = s.exp ?? 0;
+      state.expToNext = expForLevel(state.level);
+      state.kills = s.kills ?? 0;
+      applyStats({ fullHeal: false }); // 레벨+업그레이드로 maxHp/공격력 재계산
+      if (typeof s.hp === 'number') {
+        state.hp = Math.min(state.maxHp, Math.max(0, s.hp)); // 저장된 현재 HP 복원
+      }
+      emit();
     },
   };
 }

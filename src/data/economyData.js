@@ -86,17 +86,23 @@ export function createEconomyData() {
     state.upgrades = { attack: 0, maxHp: 0, goldGain: 0, ...(saved.upgrades || {}) };
     state.goldPerSec = saved.goldPerSec ?? 0;
 
-    // 오프라인 보상 계산: 마지막 접속 이후 경과 시간 × 획득 속도 × 효율
-    if (saved.lastSeen && state.goldPerSec > 0) {
-      const elapsedSec = (Date.now() - saved.lastSeen) / 1000;
-      if (elapsedSec > GOLD.OFFLINE_MIN_SEC) {
-        const capped = Math.min(elapsedSec, GOLD.OFFLINE_CAP_HOURS * 3600);
-        const reward = Math.floor(state.goldPerSec * capped * GOLD.OFFLINE_EFFICIENCY);
-        if (reward > 0) {
-          state.pendingOfflineReward = { gold: reward, seconds: Math.floor(capped) };
-        }
-      }
-    }
+    // 오프라인 보상 계산 (localStorage 기준 — 서버 모드에서는 saveManager 가 서버 lastSeen 으로 덮어씀)
+    computeOfflineReward(saved.lastSeen);
+  }
+
+  /**
+   * 마지막 접속 이후 경과 시간 × 획득 속도 × 효율로 오프라인 보상을 계산해 state 에 반영.
+   * 실제로 보상이 생겼으면 true. (emit 은 호출자가 판단)
+   */
+  function computeOfflineReward(lastSeenMillis) {
+    if (!lastSeenMillis || state.goldPerSec <= 0) return false;
+    const elapsedSec = (Date.now() - lastSeenMillis) / 1000;
+    if (elapsedSec <= GOLD.OFFLINE_MIN_SEC) return false;
+    const capped = Math.min(elapsedSec, GOLD.OFFLINE_CAP_HOURS * 3600);
+    const reward = Math.floor(state.goldPerSec * capped * GOLD.OFFLINE_EFFICIENCY);
+    if (reward <= 0) return false;
+    state.pendingOfflineReward = { gold: reward, seconds: Math.floor(capped) };
+    return true;
   }
 
   function emit() {
@@ -212,16 +218,32 @@ export function createEconomyData() {
       persist();
     },
 
-    // ===== 백엔드 연동 지점 (Spring Boot) =====
+    // ===== 저장/복원 (saveManager 가 서버 I/O 를 담당) =====
 
-    /** GET /api/economy — 서버에서 골드/업그레이드 불러오기 */
-    async loadFromServer() {
-      // TODO: localStorage 대신 서버 응답으로 state 채우고 오프라인 계산
+    /** 서버 저장용 직렬화 */
+    getSaveState() {
+      return {
+        gold: state.gold,
+        upgrades: { ...state.upgrades },
+        goldPerSec: state.goldPerSec,
+      };
     },
 
-    /** PUT /api/economy — 서버에 저장 */
-    async saveToServer() {
-      // TODO: fetch('/api/economy', { method: 'PUT', body: JSON.stringify(state) })
+    /** 서버에서 받은 상태로 복원 */
+    loadSaveState(s) {
+      if (!s) return;
+      state.gold = s.gold ?? 0;
+      state.upgrades = { attack: 0, maxHp: 0, goldGain: 0, ...(s.upgrades || {}) };
+      state.goldPerSec = s.goldPerSec ?? 0;
+      state.pendingOfflineReward = null;
+      lastEarnTime = null;
+      persist();
+      emit();
+    },
+
+    /** 서버 lastSeen 기준으로 오프라인 보상 계산 (복원 직후 호출) */
+    computeOffline(lastSeenMillis) {
+      if (computeOfflineReward(lastSeenMillis)) emit();
     },
   };
 
