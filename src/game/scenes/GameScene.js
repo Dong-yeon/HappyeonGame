@@ -62,6 +62,7 @@ export default class GameScene extends Phaser.Scene {
     const groundTop = PLATFORMS[0].y - PLATFORMS[0].height / 2;
     this.player = new Player(this, 220, groundTop - 80, playerData);
     this.player.setFillStyle(evolutionData.getColor());
+    this.createPlayerDecor();
 
     // ===== 스킬 (형태별 고유기, 쿨타임마다 자동 발동) =====
     this.lastSkillTime = 0;
@@ -191,6 +192,7 @@ export default class GameScene extends Phaser.Scene {
   update(time) {
     this.player.update(time);
     this.updateSkills(time);
+    this.updatePlayerDecor();
 
     // 낙사 안전장치 (벽으로 막혀 있어 거의 발생하지 않음)
     if (this.player.y > GAME_HEIGHT + 100) {
@@ -356,6 +358,43 @@ export default class GameScene extends Phaser.Scene {
       this.skyGfx.fillGradientStyle(cfg.bgColor, cfg.bgColor, dark, dark, 1);
       this.skyGfx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
     }
+  }
+
+  /** 요괴(플레이어) 모양: 뿔 + 눈 (Player.js 는 건드리지 않고 씬이 따라다니게) */
+  createPlayerDecor() {
+    const d = -6; // 뿔 스파이크 shape
+    this.pDecor = {
+      hornL: this.add.triangle(0, 0, -2, 0, 8, 0, 3, -16, 0x000000).setDepth(2),
+      hornR: this.add.triangle(0, 0, -8, 0, 2, 0, -3, -16, 0x000000).setDepth(2),
+      eyeL: this.add.circle(0, 0, 4.5, 0xffffff).setDepth(3),
+      eyeR: this.add.circle(0, 0, 4.5, 0xffffff).setDepth(3),
+      pupilL: this.add.circle(0, 0, 2.2, 0x141414).setDepth(4),
+      pupilR: this.add.circle(0, 0, 2.2, 0x141414).setDepth(4),
+    };
+    this._d = d;
+  }
+
+  updatePlayerDecor() {
+    if (!this.pDecor) return;
+    const p = this.player;
+    const f = p.facing;
+    const topY = p.y - p.height / 2;
+    const eyeY = p.y - p.height * 0.16;
+    // 뿔은 형태 색을 어둡게
+    const c = Phaser.Display.Color.IntegerToColor(evolutionData.getColor());
+    const horn = Phaser.Display.Color.GetColor(
+      Math.round(c.red * 0.45),
+      Math.round(c.green * 0.45),
+      Math.round(c.blue * 0.45),
+    );
+    this.pDecor.hornL.setPosition(p.x - 8, topY + 2).setFillStyle(horn);
+    this.pDecor.hornR.setPosition(p.x + 8, topY + 2).setFillStyle(horn);
+    this.pDecor.eyeL.setPosition(p.x - 6, eyeY);
+    this.pDecor.eyeR.setPosition(p.x + 6, eyeY);
+    this.pDecor.pupilL.setPosition(p.x - 6 + f * 2, eyeY);
+    this.pDecor.pupilR.setPosition(p.x + 6 + f * 2, eyeY);
+    const a = p.alpha; // 무적 깜빡임 동기화
+    Object.values(this.pDecor).forEach((o) => o.setAlpha(a));
   }
 
   /** 배경 야경: 하늘 그라데이션 + 달(글로우) + 별 + 산 실루엣 */
