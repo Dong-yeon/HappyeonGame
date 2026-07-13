@@ -34,6 +34,9 @@ export default class GameScene extends Phaser.Scene {
     this.playerData = playerData;
     this.stageData = stageData;
 
+    // ===== 배경 야경 (달/별/산 실루엣 + 스테이지별 하늘 그라데이션) =====
+    this.createBackground();
+
     this.platforms = this.physics.add.staticGroup();
     this.walls = this.physics.add.staticGroup();
     this.enemies = this.add.group({ runChildUpdate: true });
@@ -117,7 +120,13 @@ export default class GameScene extends Phaser.Scene {
     this.physics.add.collider(this.enemies, this.walls);
     // 적마다 접촉 피해가 다르므로 적 자신의 damage 를 넘긴다 (Player AI 로직은 그대로)
     this.physics.add.overlap(this.player, this.enemies, (_player, enemy) => {
+      const before = this.playerData.getState().hp;
       this.player.hitByEnemy(enemy.damage);
+      // 실제로 피해를 입었으면 화면 흔들림 (juice)
+      if (this.playerData.getState().hp < before) {
+        this.cameras.main.shake(120, 0.006);
+        this.showDamage(this.player.x, this.player.y - 20, enemy.damage, '#ff6b6b');
+      }
     });
 
     // ===== 현재 스테이지 배경 적용 + 초기 적 스폰 =====
@@ -136,10 +145,14 @@ export default class GameScene extends Phaser.Scene {
     });
 
     // ===== 적/보스 처치 처리 =====
-    this.events.on('enemy-killed', ({ exp, x, y, isBoss }) => {
+    this.events.on('enemy-killed', ({ exp, x, y, isBoss, color }) => {
       this.playerData.addKill();
       const leveledUp = this.playerData.gainExp(exp);
       this.showFloatingText(x, y - 30, `+${exp} EXP`, '#ffd54f');
+
+      // 처치 이펙트 (juice): 파편 폭발 + 보스는 화면 흔들림
+      this.deathBurst(x, y, color ?? 0xffffff, isBoss);
+      if (isBoss) this.cameras.main.shake(260, 0.012);
 
       // 컨디션(탈진) 시 획득 효율 감소
       const gainMul = careData.getGainMultiplier();
@@ -331,6 +344,91 @@ export default class GameScene extends Phaser.Scene {
   applyStageBackground() {
     const cfg = this.stageData.getConfig();
     this.cameras.main.setBackgroundColor(cfg.bgColor);
+    // 스테이지 색으로 하늘 그라데이션 재도색 (위=스테이지색, 아래=어둡게)
+    if (this.skyGfx) {
+      const c = Phaser.Display.Color.IntegerToColor(cfg.bgColor);
+      const dark = Phaser.Display.Color.GetColor(
+        Math.round(c.red * 0.35),
+        Math.round(c.green * 0.35),
+        Math.round(c.blue * 0.35),
+      );
+      this.skyGfx.clear();
+      this.skyGfx.fillGradientStyle(cfg.bgColor, cfg.bgColor, dark, dark, 1);
+      this.skyGfx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    }
+  }
+
+  /** 배경 야경: 하늘 그라데이션 + 달(글로우) + 별 + 산 실루엣 */
+  createBackground() {
+    this.skyGfx = this.add.graphics().setDepth(-20);
+
+    // 달 (글로우 + 본체)
+    this.add.circle(GAME_WIDTH - 210, 130, 66, 0xfff3bf, 0.12).setDepth(-18);
+    this.add.circle(GAME_WIDTH - 210, 130, 46, 0xfff3bf, 0.2).setDepth(-18);
+    this.add.circle(GAME_WIDTH - 210, 130, 34, 0xfdf6d8, 1).setDepth(-17);
+    this.add.circle(GAME_WIDTH - 198, 122, 26, 0xf0e6c0, 0.5).setDepth(-16); // 음영
+
+    // 별
+    for (let i = 0; i < 46; i += 1) {
+      const x = Phaser.Math.Between(20, GAME_WIDTH - 20);
+      const y = Phaser.Math.Between(20, GAME_HEIGHT * 0.5);
+      const s = Phaser.Math.FloatBetween(0.6, 1.6);
+      this.add.circle(x, y, s, 0xffffff, Phaser.Math.FloatBetween(0.4, 0.9)).setDepth(-18);
+    }
+
+    // 산 실루엣 (뒤→앞, 점점 밝게)
+    const horizon = GAME_HEIGHT - 90;
+    const ranges = [
+      { color: 0x161a2b, peaks: [[-50, 120], [280, 220], [620, 150], [980, 240], [1330, 160]], base: horizon + 30 },
+      { color: 0x1f2438, peaks: [[-50, 60], [180, 150], [500, 90], [820, 170], [1150, 100], [1330, 150]], base: horizon + 60 },
+    ];
+    ranges.forEach((r) => {
+      const g = this.add.graphics().setDepth(-15);
+      g.fillStyle(r.color, 1);
+      g.beginPath();
+      g.moveTo(-50, r.base);
+      r.peaks.forEach(([px, ph]) => g.lineTo(px, r.base - ph));
+      g.lineTo(GAME_WIDTH + 50, r.base);
+      g.lineTo(GAME_WIDTH + 50, GAME_HEIGHT);
+      g.lineTo(-50, GAME_HEIGHT);
+      g.closePath();
+      g.fillPath();
+    });
+  }
+
+  /** 떠오르며 사라지는 피해 숫자 */
+  showDamage(x, y, amount, color = '#ffffff') {
+    const t = this.add
+      .text(x + Phaser.Math.Between(-8, 8), y, `${amount}`, {
+        fontSize: '15px',
+        fontStyle: 'bold',
+        color,
+        stroke: '#000000',
+        strokeThickness: 3,
+      })
+      .setOrigin(0.5)
+      .setDepth(60);
+    this.tweens.add({ targets: t, y: y - 26, alpha: 0, duration: 500, ease: 'Quad.Out', onComplete: () => t.destroy() });
+  }
+
+  /** 파편 폭발 (처치/타격) */
+  deathBurst(x, y, color, big = false) {
+    const n = big ? 14 : 7;
+    for (let i = 0; i < n; i += 1) {
+      const ang = Phaser.Math.FloatBetween(0, Math.PI * 2);
+      const spd = Phaser.Math.Between(big ? 120 : 60, big ? 300 : 160);
+      const p = this.add.rectangle(x, y, big ? 7 : 5, big ? 7 : 5, color).setDepth(55);
+      this.tweens.add({
+        targets: p,
+        x: x + Math.cos(ang) * spd,
+        y: y + Math.sin(ang) * spd,
+        alpha: 0,
+        scale: 0.2,
+        duration: big ? 480 : 340,
+        ease: 'Quad.Out',
+        onComplete: () => p.destroy(),
+      });
+    }
   }
 
   /** 화면 중앙 배너 (스테이지 전환/보스 등장 알림) */

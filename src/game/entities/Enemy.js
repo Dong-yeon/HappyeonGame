@@ -44,11 +44,13 @@ export default class Enemy extends Phaser.GameObjects.Rectangle {
   takeDamage(amount) {
     this.hp -= amount;
 
-    // 피격 플래시
+    // 피격 플래시 + 피해 숫자 + 파편 (juice)
     this.setFillStyle(0xffffff);
     this.scene.time.delayedCall(80, () => {
       if (this.active) this.setFillStyle(this.baseColor);
     });
+    if (this.scene.showDamage) this.scene.showDamage(this.x, this.y - this.height / 2, amount, '#fff3bf');
+    if (this.hp > 0 && this.scene.deathBurst) this.scene.deathBurst(this.x, this.y, this.baseColor, false);
 
     if (this.hp <= 0) {
       this.die();
@@ -61,6 +63,7 @@ export default class Enemy extends Phaser.GameObjects.Rectangle {
       x: this.x,
       y: this.y,
       isBoss: this.isBoss,
+      color: this.baseColor,
     });
     this.destroy();
   }
