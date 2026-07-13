@@ -58,6 +58,10 @@ export const ESSENCE = {
   PER_STAGE: 4, // 스테이지(0-base index)당 추가 정기
 };
 
+export const REBIRTH = {
+  BONUS_PER: 0.5, // 전생 1회당 영구 능력치 배율 +50%
+};
+
 export const CARE = {
   MAX_FULLNESS: 100,
   FEED_AMOUNT: 25, // 먹이 1회당 포만감 회복

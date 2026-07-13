@@ -16,6 +16,7 @@ import { stageData } from '../../data/stageData.js';
 import { economyData } from '../../data/economyData.js';
 import { evolutionData } from '../../data/evolutionData.js';
 import { careData } from '../../data/careData.js';
+import { rebirthData } from '../../data/rebirthData.js';
 
 /**
  * 메인 사냥터 씬 — 고정 크기 맵 (메이플스토리 일반 사냥터 방식) + 스테이지 진행 구조.
@@ -60,17 +61,38 @@ export default class GameScene extends Phaser.Scene {
 
     // 진화 시: 요괴 색 갱신 + 연출 (Player AI 로직은 건드리지 않음)
     let lastFormId = evolutionData.getState().formId;
+    let lastTier = evolutionData.getState().tier;
     const unsubEvolution = evolutionData.subscribe((evo) => {
       this.player.setFillStyle(evo.color);
       if (evo.formId !== lastFormId) {
+        const forward = evo.tier > lastTier; // 전진 진화만 배너 (전생 회귀는 제외)
         lastFormId = evo.formId;
-        const label = evo.isFinal ? `✦ 승천! ✦\n${evo.formName}` : `✦ 진화! ✦\n${evo.formName}`;
-        this.showBanner(label, '#ffe08a');
+        lastTier = evo.tier;
+        if (forward) {
+          const label = evo.isFinal ? `✦ 승천! ✦\n${evo.formName}` : `✦ 진화! ✦\n${evo.formName}`;
+          this.showBanner(label, '#ffe08a');
+        }
       }
     });
+
+    // 전생 시: 적 정리 + 배경/연출 (스테이지·형태는 오케스트레이션에서 이미 초기화됨)
+    let lastRebirth = rebirthData.getState().count;
+    const unsubRebirth = rebirthData.subscribe((rb) => {
+      if (rb.count > lastRebirth) {
+        lastRebirth = rb.count;
+        this.enemies.getChildren().slice().forEach((e) => e.destroy());
+        this.applyStageBackground();
+        this.showBanner(`🔄 전생! 🔄\n환생 ${rb.count}회 · 영구 배율 ×${rb.multiplier}`, '#c0eb75');
+      }
+    });
+
     // 씬 종료 시 구독 해제 (싱글턴 모듈이 파괴된 씬을 참조하지 않도록)
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, unsubEvolution);
-    this.events.once(Phaser.Scenes.Events.DESTROY, unsubEvolution);
+    const cleanup = () => {
+      unsubEvolution();
+      unsubRebirth();
+    };
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, cleanup);
+    this.events.once(Phaser.Scenes.Events.DESTROY, cleanup);
 
     this.physics.add.collider(this.player, this.platforms);
     this.physics.add.collider(this.player, this.walls);

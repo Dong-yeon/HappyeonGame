@@ -97,6 +97,14 @@ export function createEvolutionData() {
       emit();
     },
 
+    /** 전생: 루트 형태로 회귀 (종족·도감은 유지, 정기 초기화) */
+    reincarnate() {
+      state.formId = getSpecies(state.species).root;
+      state.essence = 0;
+      markDiscovered(state.formId);
+      emit();
+    },
+
     /** 종족 선택 (신규 플레이어). 성공 시 true */
     chooseSpecies(key) {
       if (!SPECIES[key]) return false;

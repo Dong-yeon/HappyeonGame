@@ -8,6 +8,7 @@
 import { economyData } from './economyData.js';
 import { evolutionData } from './evolutionData.js';
 import { careData } from './careData.js';
+import { rebirthData } from './rebirthData.js';
 
 const EXP_BASE = 20; // 레벨 1→2 필요 경험치
 const EXP_GROWTH = 1.4; // 레벨당 필요 경험치 증가율
@@ -45,7 +46,7 @@ export function createPlayerData() {
     const base = baseStatsForLevel(state.level);
     const bonus = economyData.getBonuses();
     const care = careData.getStatBonus(); // 훈련 보너스
-    const mult = evolutionData.getMultiplier(); // 진화 단계 배율
+    const mult = evolutionData.getMultiplier() * rebirthData.getMultiplier(); // 진화 단계 × 전생 영구 배율
     const newMax = Math.round((base.maxHp + bonus.maxHp + care.hp) * mult);
     const delta = newMax - state.maxHp;
     state.maxHp = newMax;
@@ -70,7 +71,7 @@ export function createPlayerData() {
   function syncFromModifiers() {
     const b = economyData.getBonuses();
     const c = careData.getStatBonus();
-    const sig = `${b.attack}/${b.maxHp}/${evolutionData.getMultiplier()}/${c.attack}/${c.hp}`;
+    const sig = `${b.attack}/${b.maxHp}/${evolutionData.getMultiplier()}/${c.attack}/${c.hp}/${rebirthData.getMultiplier()}`;
     if (sig === lastStatSig) return;
     lastStatSig = sig;
     applyStats({ fullHeal: false });
@@ -79,6 +80,7 @@ export function createPlayerData() {
   economyData.subscribe(syncFromModifiers);
   evolutionData.subscribe(syncFromModifiers);
   careData.subscribe(syncFromModifiers);
+  rebirthData.subscribe(syncFromModifiers);
 
   return {
     /** 현재 상태 스냅샷 (읽기 전용 복사본) */
@@ -130,6 +132,15 @@ export function createPlayerData() {
     /** 사망 후 부활 (프로토타입: 스탯 유지, 체력만 회복) */
     revive() {
       state.hp = state.maxHp;
+      emit();
+    },
+
+    /** 전생: 레벨/경험치 초기화 (누적 포식 수는 유지) */
+    rebirthReset() {
+      state.level = 1;
+      state.exp = 0;
+      state.expToNext = expForLevel(1);
+      applyStats({ fullHeal: true });
       emit();
     },
 

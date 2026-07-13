@@ -2,16 +2,19 @@ import { useEffect, useState } from 'react';
 import { playerData } from '../data/playerData.js';
 import { stageData } from '../data/stageData.js';
 import { evolutionData } from '../data/evolutionData.js';
+import { rebirthData } from '../data/rebirthData.js';
 
 /** React 기반 HUD — 요괴 형태 / HP / 레벨 / 경험치 / 스테이지 진행 / 정기(진화) / 포식 수 */
 export default function HUD() {
   const [stats, setStats] = useState(playerData.getState());
   const [stage, setStage] = useState(stageData.getState());
   const [evo, setEvo] = useState(evolutionData.getState());
+  const [rb, setRb] = useState(rebirthData.getState());
 
   useEffect(() => playerData.subscribe(setStats), []);
   useEffect(() => stageData.subscribe(setStage), []);
   useEffect(() => evolutionData.subscribe(setEvo), []);
+  useEffect(() => rebirthData.subscribe(setRb), []);
 
   const hpPercent = (stats.hp / stats.maxHp) * 100;
   const expPercent = (stats.exp / stats.expToNext) * 100;
@@ -25,6 +28,7 @@ export default function HUD() {
       <div className="hud-titlecol">
         <span className="hud-title">
           {evo.formName} <span className="hud-species">· {evo.speciesName}</span>
+          {rb.count > 0 && <span className="hud-rebirth"> · 전생 {rb.count}회</span>}
         </span>
         <span className="hud-stage">
           STAGE {stage.stageNumber} · {stage.stageName}

@@ -694,3 +694,111 @@ body,
   color: #8ce99a;
   font-weight: 600;
 }
+
+/* ===== 전생(환생) 표시 & 버튼 ===== */
+.hud-rebirth {
+  font-size: 11px;
+  font-weight: 700;
+  color: #c0eb75;
+}
+
+.rebirth {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+}
+
+.rebirth-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 30px;
+  background: linear-gradient(180deg, #94d82d, #66a80f);
+  border: 2px solid #d8f5a2;
+  border-radius: 999px;
+  color: #142200;
+  font-size: 17px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 0 24px rgba(192, 235, 117, 0.55);
+  animation: rebirthPulse 1.5s ease-in-out infinite;
+}
+
+.rebirth-sub {
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+@keyframes rebirthPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 22px rgba(192, 235, 117, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 34px rgba(192, 235, 117, 0.8);
+  }
+}
+
+.rebirth-confirm {
+  padding: 16px 20px;
+  background: rgba(12, 20, 8, 0.95);
+  border: 1px solid #94d82d;
+  border-radius: 14px;
+  text-align: center;
+  color: #eaffd6;
+  box-shadow: 0 0 28px rgba(192, 235, 117, 0.4);
+}
+
+.rebirth-q {
+  font-size: 16px;
+  font-weight: 800;
+  color: #c0eb75;
+}
+
+.rebirth-detail {
+  margin: 8px 0 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #d8e6c8;
+}
+
+.rebirth-detail b {
+  color: #f4ffe6;
+}
+
+.rebirth-keep {
+  font-size: 11px;
+  color: #9db48a;
+}
+
+.rebirth-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.rebirth-yes {
+  padding: 9px 24px;
+  background: linear-gradient(180deg, #94d82d, #66a80f);
+  border: none;
+  border-radius: 8px;
+  color: #142200;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.rebirth-no {
+  padding: 9px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 8px;
+  color: #d8e6c8;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}

@@ -100,6 +100,14 @@ export function createCareData() {
       return snapshot().dominant;
     },
 
+    /** 전생: 훈련·포만감 초기화 */
+    reset() {
+      state.fullness = CARE.MAX_FULLNESS;
+      state.training = { attack: 0, hp: 0 };
+      state.lastTick = Date.now();
+      emit();
+    },
+
     /** 훈련치에 따른 능력치 보너스 (playerData 반영) */
     getStatBonus() {
       return {
