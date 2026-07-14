@@ -19,11 +19,16 @@ export function createExpeditionData() {
 
   const state = {
     active: {}, // { [speciesKey]: 시작시각(ms) }
-    altarLevel: 0, // 재료 제단 강화 레벨
+    altarLevel: 0, // 재료 제단 — 능력 강화 레벨
+    skillLevel: 0, // 재료 제단 — 스킬 강화 레벨
   };
 
+  function snapshot() {
+    return { active: { ...state.active }, altarLevel: state.altarLevel, skillLevel: state.skillLevel };
+  }
+
   function emit() {
-    const snap = { active: { ...state.active }, altarLevel: state.altarLevel };
+    const snap = snapshot();
     listeners.forEach((fn) => fn(snap));
   }
 
@@ -44,14 +49,18 @@ export function createExpeditionData() {
     return Math.floor(EXPEDITION.ALTAR_BASE_COST * Math.pow(EXPEDITION.ALTAR_COST_GROWTH, state.altarLevel));
   }
 
+  function skillCost() {
+    return Math.floor(EXPEDITION.SKILL_BASE_COST * Math.pow(EXPEDITION.SKILL_COST_GROWTH, state.skillLevel));
+  }
+
   return {
     getState() {
-      return { active: { ...state.active }, altarLevel: state.altarLevel };
+      return snapshot();
     },
 
     subscribe(fn) {
       listeners.add(fn);
-      fn({ active: { ...state.active }, altarLevel: state.altarLevel });
+      fn(snapshot());
       return () => listeners.delete(fn);
     },
 
@@ -116,7 +125,7 @@ export function createExpeditionData() {
       return 1 + state.altarLevel * EXPEDITION.ALTAR_BONUS_PER;
     },
 
-    /** 제단 강화 (재료 소비) */
+    /** 능력 강화 (재료 소비) */
     upgradeAltar() {
       if (!economyData.spendMaterials(altarCost())) return false;
       state.altarLevel += 1;
@@ -124,16 +133,59 @@ export function createExpeditionData() {
       return true;
     },
 
+    // ===== 스킬 강화 (재료 → 영구 스킬 피해) =====
+
+    getSkillInfo() {
+      return {
+        level: state.skillLevel,
+        cost: skillCost(),
+        bonusPct: Math.round(state.skillLevel * EXPEDITION.SKILL_BONUS_PER * 100),
+        nextBonusPct: Math.round((state.skillLevel + 1) * EXPEDITION.SKILL_BONUS_PER * 100),
+      };
+    },
+
+    /** GameScene 이 스킬 피해에 반영하는 배율 */
+    getSkillMultiplier() {
+      return 1 + state.skillLevel * EXPEDITION.SKILL_BONUS_PER;
+    },
+
+    upgradeSkill() {
+      if (!economyData.spendMaterials(skillCost())) return false;
+      state.skillLevel += 1;
+      emit();
+      return true;
+    },
+
+    // ===== 정기 촉진 (재료 → 정기, 반복) =====
+
+    getEssenceBoostInfo() {
+      const evo = evolutionData.getState();
+      const amount = evo.isFinal ? 0 : Math.ceil(evo.essenceToEvolve * EXPEDITION.ESSENCE_BOOST_PCT);
+      return { cost: EXPEDITION.ESSENCE_BOOST_COST, amount, available: !evo.isFinal };
+    },
+
+    /** 재료를 정기로 전환 (다음 진화 필요량의 일정 비율) */
+    boostEssence() {
+      const evo = evolutionData.getState();
+      if (evo.isFinal) return 0;
+      const amount = Math.ceil(evo.essenceToEvolve * EXPEDITION.ESSENCE_BOOST_PCT);
+      if (!economyData.spendMaterials(EXPEDITION.ESSENCE_BOOST_COST)) return 0;
+      evolutionData.gainEssence(amount);
+      emit();
+      return amount;
+    },
+
     // ===== 저장/복원 =====
 
     getSaveState() {
-      return { active: { ...state.active }, altarLevel: state.altarLevel };
+      return { active: { ...state.active }, altarLevel: state.altarLevel, skillLevel: state.skillLevel };
     },
 
     loadSaveState(s) {
       if (!s) return;
       state.active = s.active && typeof s.active === 'object' ? { ...s.active } : {};
       state.altarLevel = s.altarLevel ?? 0;
+      state.skillLevel = s.skillLevel ?? 0;
       emit();
     },
   };

@@ -19,6 +19,7 @@ import { evolutionData } from '../../data/evolutionData.js';
 import { careData } from '../../data/careData.js';
 import { rebirthData } from '../../data/rebirthData.js';
 import { skillData } from '../../data/skillData.js';
+import { expeditionData } from '../../data/expeditionData.js';
 
 /**
  * 메인 사냥터 씬 — 고정 크기 맵 (메이플스토리 일반 사냥터 방식) + 스테이지 진행 구조.
@@ -226,7 +227,7 @@ export default class GameScene extends Phaser.Scene {
     if (time - this.lastSkillTime < skill.cooldown) return;
 
     const power = this.playerData.getState().attackPower;
-    const dmg = Math.round(power * skill.mult);
+    const dmg = Math.round(power * skill.mult * expeditionData.getSkillMultiplier());
     const px = this.player.x;
     const py = this.player.y;
     const facing = this.player.facing;

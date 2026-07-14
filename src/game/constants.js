@@ -76,9 +76,14 @@ export const CHAPTER = {
 
 export const EXPEDITION = {
   RATE_PER_FORM: 0.3, // 원정 재료/분 (해당 종족의 발견 형태 1종당)
-  ALTAR_BASE_COST: 10, // 재료 제단 강화 기본 비용
-  ALTAR_COST_GROWTH: 1.6, // 제단 강화 비용 증가율
-  ALTAR_BONUS_PER: 0.05, // 제단 1레벨당 영구 능력 +5%
+  ALTAR_BASE_COST: 10, // 재료 제단: 능력 강화 기본 비용
+  ALTAR_COST_GROWTH: 1.6, // 능력 강화 비용 증가율
+  ALTAR_BONUS_PER: 0.05, // 능력 강화 1레벨당 영구 능력 +5%
+  SKILL_BASE_COST: 15, // 재료 제단: 스킬 강화 기본 비용
+  SKILL_COST_GROWTH: 1.6, // 스킬 강화 비용 증가율
+  SKILL_BONUS_PER: 0.08, // 스킬 강화 1레벨당 스킬 피해 +8%
+  ESSENCE_BOOST_COST: 6, // 정기 촉진 1회 재료 비용
+  ESSENCE_BOOST_PCT: 0.15, // 정기 촉진 1회 = 다음 진화 필요 정기의 15%
 };
 
 export const CARE = {
