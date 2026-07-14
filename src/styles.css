@@ -1025,3 +1025,23 @@ body {
 .codex-form-name {
   color: var(--cream) !important;
 }
+
+/* ===== HUD 챕터/재료 ===== */
+.hud-gate {
+  color: #ff8787;
+  font-weight: 700;
+}
+
+.hud-right {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-end;
+  white-space: nowrap;
+}
+
+.hud-mat {
+  font-size: 13px;
+  font-weight: 700;
+  color: #c8b6ff;
+}

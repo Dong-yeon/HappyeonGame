@@ -3,6 +3,8 @@ import { playerData } from '../data/playerData.js';
 import { stageData } from '../data/stageData.js';
 import { evolutionData } from '../data/evolutionData.js';
 import { rebirthData } from '../data/rebirthData.js';
+import { economyData } from '../data/economyData.js';
+import { CHAPTER } from '../game/constants.js';
 
 /** React 기반 HUD — 요괴 형태 / HP / 레벨 / 경험치 / 스테이지 진행 / 정기(진화) / 포식 수 */
 export default function HUD() {
@@ -10,11 +12,13 @@ export default function HUD() {
   const [stage, setStage] = useState(stageData.getState());
   const [evo, setEvo] = useState(evolutionData.getState());
   const [rb, setRb] = useState(rebirthData.getState());
+  const [materials, setMaterials] = useState(economyData.getState().materials);
 
   useEffect(() => playerData.subscribe(setStats), []);
   useEffect(() => stageData.subscribe(setStage), []);
   useEffect(() => evolutionData.subscribe(setEvo), []);
   useEffect(() => rebirthData.subscribe(setRb), []);
+  useEffect(() => economyData.subscribe((s) => setMaterials(s.materials)), []);
 
   const hpPercent = (stats.hp / stats.maxHp) * 100;
   const expPercent = (stats.exp / stats.expToNext) * 100;
@@ -31,7 +35,8 @@ export default function HUD() {
           {rb.count > 0 && <span className="hud-rebirth"> · 전생 {rb.count}회</span>}
         </span>
         <span className="hud-stage">
-          STAGE {stage.stageNumber} · {stage.stageName}
+          챕터 {stage.chapter} · {stage.stageInChapter}/{CHAPTER.SIZE} · {stage.stageName}
+          {stage.isChapterBossStage && <span className="hud-gate"> · 보스 관문</span>}
         </span>
       </div>
       <span className="hud-level">Lv.{stats.level}</span>
@@ -54,7 +59,7 @@ export default function HUD() {
             style={{ width: `${stagePercent}%` }}
           />
           <span className="bar-label">
-            {stage.bossActive ? '⚔ 장수 처치!' : `돌파 ${stage.kills} / ${stage.killsToClear}`}
+            {stage.bossActive ? '⚔ 챕터 보스 처치!' : `돌파 ${stage.kills} / ${stage.killsToClear}`}
           </span>
         </div>
         <div className="bar">
@@ -64,7 +69,10 @@ export default function HUD() {
           </span>
         </div>
       </div>
-      <span className="hud-kills">포식 {stats.kills}</span>
+      <div className="hud-right">
+        <span className="hud-mat">🪵 {materials.toLocaleString()}</span>
+        <span className="hud-kills">포식 {stats.kills}</span>
+      </div>
     </div>
   );
 }

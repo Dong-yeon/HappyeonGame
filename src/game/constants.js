@@ -66,6 +66,14 @@ export const CODEX = {
   BONUS_PER_FORM: 0.02, // 도감 형태 1종 발견당 영구 능력치 +2% (전 종족 수집 보상)
 };
 
+export const CHAPTER = {
+  SIZE: 10, // 챕터당 스테이지 수 (마지막 스테이지에 챕터 보스)
+  BOSS_HP_MUL: 3, // 챕터 보스 = 일반 보스 대비 체력 배율
+  BOSS_SIZE_MUL: 1.4, // 챕터 보스 크기 배율
+  MATERIAL_BASE: 5, // 챕터 보스 처치 재료 보상 기본
+  MATERIAL_PER_CHAPTER: 3, // 챕터당 추가 재료
+};
+
 export const CARE = {
   MAX_FULLNESS: 100,
   FEED_AMOUNT: 25, // 먹이 1회당 포만감 회복

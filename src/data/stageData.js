@@ -6,18 +6,21 @@
  * 추후 Spring Boot 연동 시 loadFromServer / saveToServer 만 채우면 된다.
  */
 import { getStageConfig } from '../game/stages.js';
+import { CHAPTER } from '../game/constants.js';
 
 export function createStageData() {
   const listeners = new Set();
 
-  const initial = getStageConfig(0);
   const state = {
     stageIndex: 0, // 0-base
-    stageNumber: initial.number,
-    stageName: initial.name,
+    stageNumber: 1,
+    stageName: '',
     kills: 0, // 현재 스테이지에서 처치한 일반 적 수
-    killsToClear: initial.killsToClear,
-    bossActive: false, // 보스 등장 중 여부
+    killsToClear: 8,
+    bossActive: false, // 챕터 보스 등장 중 여부
+    chapter: 1, // 현재 챕터 (1-base)
+    stageInChapter: 1, // 챕터 내 스테이지 번호 (1..SIZE)
+    isChapterBossStage: false, // 이번 스테이지가 챕터 보스 관문인지
   };
 
   function syncStage() {
@@ -25,7 +28,18 @@ export function createStageData() {
     state.stageNumber = cfg.number;
     state.stageName = cfg.name;
     state.killsToClear = cfg.killsToClear;
+    state.chapter = Math.floor(state.stageIndex / CHAPTER.SIZE) + 1;
+    state.stageInChapter = (state.stageIndex % CHAPTER.SIZE) + 1;
+    state.isChapterBossStage = (state.stageIndex + 1) % CHAPTER.SIZE === 0;
   }
+
+  function advance() {
+    state.stageIndex += 1;
+    state.kills = 0;
+    syncStage();
+  }
+
+  syncStage();
 
   function emit() {
     const snapshot = { ...state };
@@ -49,25 +63,33 @@ export function createStageData() {
     },
 
     /**
-     * 일반 적 처치 등록.
-     * 이번 처치로 보스 등장 조건에 도달하면 true 반환 (보스 소환 시점).
-     * 보스 등장 중에는 집계하지 않는다.
+     * 일반 적 처치 등록. 목표 수 도달 시:
+     *  - 챕터 보스 관문(10스테이지째) → 'boss' (챕터 보스 소환)
+     *  - 그 외 → 'advance' (다음 스테이지로 즉시 진행, 보스 없음)
+     *  - 그 외 진행 없음 → null
+     * 챕터 보스 등장 중에는 집계하지 않는다.
      */
     registerKill() {
-      if (state.bossActive) return false;
+      if (state.bossActive) return null;
       state.kills += 1;
-      const bossReady = state.kills >= state.killsToClear;
-      if (bossReady) state.bossActive = true;
+      if (state.kills >= state.killsToClear) {
+        if (state.isChapterBossStage) {
+          state.bossActive = true;
+          emit();
+          return 'boss';
+        }
+        advance();
+        emit();
+        return 'advance';
+      }
       emit();
-      return bossReady;
+      return null;
     },
 
-    /** 보스 처치 → 다음 스테이지로 진행 */
+    /** 챕터 보스 처치 → 다음 챕터로 진행 */
     clearStage() {
-      state.stageIndex += 1;
-      state.kills = 0;
+      advance();
       state.bossActive = false;
-      syncStage();
       emit();
     },
 

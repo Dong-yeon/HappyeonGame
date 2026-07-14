@@ -10,6 +10,7 @@ import {
   BOSS,
   GOLD,
   ESSENCE,
+  CHAPTER,
 } from '../constants.js';
 import { playerData } from '../../data/playerData.js';
 import { stageData } from '../../data/stageData.js';
@@ -180,13 +181,15 @@ export default class GameScene extends Phaser.Scene {
       if (isBoss) {
         this.onBossDefeated();
       } else {
-        const bossReady = this.stageData.registerKill();
-        if (bossReady) this.spawnBoss();
+        const r = this.stageData.registerKill();
+        if (r === 'boss') this.spawnBoss();
+        else if (r === 'advance') this.applyStageBackground();
       }
     });
 
     // 시작 스테이지 배너
-    this.showBanner(`STAGE ${this.stageData.getState().stageNumber}\n${this.stageData.getState().stageName}`);
+    const s0 = this.stageData.getState();
+    this.showBanner(`챕터 ${s0.chapter} · ${s0.stageInChapter}/${CHAPTER.SIZE}\n${s0.stageName}`);
   }
 
   update(time) {
@@ -301,22 +304,23 @@ export default class GameScene extends Phaser.Scene {
   /** 보스 등장 — 바닥 중앙에 생성 (스테이지 배율 + 보스 배율) */
   spawnBoss() {
     const cfg = this.stageData.getConfig();
+    const s = this.stageData.getState();
+    const w = BOSS.WIDTH * CHAPTER.BOSS_SIZE_MUL;
+    const h = BOSS.HEIGHT * CHAPTER.BOSS_SIZE_MUL;
     const groundTop = PLATFORMS[0].y - PLATFORMS[0].height / 2;
-    const x = GAME_WIDTH / 2;
-    const y = groundTop - BOSS.HEIGHT / 2;
     this.enemies.add(
-      new Enemy(this, x, y, {
-        width: BOSS.WIDTH,
-        height: BOSS.HEIGHT,
+      new Enemy(this, GAME_WIDTH / 2, groundTop - h / 2, {
+        width: w,
+        height: h,
         color: BOSS.COLOR,
         moveSpeed: BOSS.MOVE_SPEED,
-        hp: Math.round(ENEMY.HP * cfg.enemyHpMul * BOSS.HP_MUL),
+        hp: Math.round(ENEMY.HP * cfg.enemyHpMul * BOSS.HP_MUL * CHAPTER.BOSS_HP_MUL),
         damage: Math.round(ENEMY.DAMAGE * cfg.enemyDmgMul * BOSS.DAMAGE_MUL),
         expReward: ENEMY.EXP_REWARD * BOSS.EXP_MUL,
         isBoss: true,
       }),
     );
-    this.showBanner('⚔ 보스 등장!', '#ff6b6b');
+    this.showBanner(`⚔ 챕터 ${s.chapter} 보스 등장! ⚔\n관문을 돌파하라`, '#ff6b6b');
   }
 
   /** 처치 시 골드량 계산 (스테이지 스케일 × 업그레이드 배율) */
@@ -336,10 +340,16 @@ export default class GameScene extends Phaser.Scene {
 
   /** 보스 처치 → 스테이지 클리어 → 다음 스테이지 */
   onBossDefeated() {
+    const cleared = this.stageData.getState().chapter; // 방금 깬 챕터
     this.stageData.clearStage();
     const s = this.stageData.getState();
     this.applyStageBackground();
-    this.showBanner(`STAGE CLEAR!\n▶ STAGE ${s.stageNumber} · ${s.stageName}`, '#8ce99a');
+
+    // 챕터 클리어 재료 보상
+    const mats = CHAPTER.MATERIAL_BASE + cleared * CHAPTER.MATERIAL_PER_CHAPTER;
+    economyData.gainMaterials(mats);
+    this.showFloatingText(this.player.x, this.player.y - 90, `+${mats} 재료`, '#c8b6ff');
+    this.showBanner(`✦ 챕터 ${cleared} 클리어! ✦\n▶ 챕터 ${s.chapter} 진입 (+${mats} 재료)`, '#8ce99a');
   }
 
   /** 현재 스테이지 배경색 적용 */

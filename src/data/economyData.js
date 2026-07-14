@@ -47,6 +47,7 @@ export function createEconomyData() {
 
   const state = {
     gold: 0,
+    materials: 0, // 재료 — 챕터 보스/원정으로 수급
     upgrades: { attack: 0, maxHp: 0, goldGain: 0 },
     goldPerSec: 0, // 최근 골드 획득 속도(EMA) — 오프라인 보상 계산에 사용
     pendingOfflineReward: null, // { gold, seconds } — 수령 대기 중인 오프라인 보상
@@ -62,6 +63,7 @@ export function createEconomyData() {
         STORAGE_KEY,
         JSON.stringify({
           gold: state.gold,
+          materials: state.materials,
           upgrades: state.upgrades,
           goldPerSec: state.goldPerSec,
           lastSeen: Date.now(),
@@ -83,6 +85,7 @@ export function createEconomyData() {
     if (!saved) return;
 
     state.gold = saved.gold ?? 0;
+    state.materials = saved.materials ?? 0;
     state.upgrades = { attack: 0, maxHp: 0, goldGain: 0, ...(saved.upgrades || {}) };
     state.goldPerSec = saved.goldPerSec ?? 0;
 
@@ -166,6 +169,26 @@ export function createEconomyData() {
       return true;
     },
 
+    // ===== 재료 (챕터 보스 / 원정) =====
+
+    /** 재료 획득 */
+    gainMaterials(amount) {
+      if (amount <= 0) return;
+      state.materials += amount;
+      persist();
+      emit();
+    },
+
+    /** 재료 소비 (부족하면 false) */
+    spendMaterials(amount) {
+      if (amount <= 0) return true;
+      if (state.materials < amount) return false;
+      state.materials -= amount;
+      persist();
+      emit();
+      return true;
+    },
+
     // ===== 업그레이드 =====
 
     /** 스탯 보너스 (playerData 가 구독해서 반영) */
@@ -234,6 +257,7 @@ export function createEconomyData() {
     getSaveState() {
       return {
         gold: state.gold,
+        materials: state.materials,
         upgrades: { ...state.upgrades },
         goldPerSec: state.goldPerSec,
       };
@@ -243,6 +267,7 @@ export function createEconomyData() {
     loadSaveState(s) {
       if (!s) return;
       state.gold = s.gold ?? 0;
+      state.materials = s.materials ?? 0;
       state.upgrades = { attack: 0, maxHp: 0, goldGain: 0, ...(s.upgrades || {}) };
       state.goldPerSec = s.goldPerSec ?? 0;
       state.pendingOfflineReward = null;
