@@ -74,6 +74,13 @@ export const CHAPTER = {
   MATERIAL_PER_CHAPTER: 3, // 챕터당 추가 재료
 };
 
+export const EXPEDITION = {
+  RATE_PER_FORM: 0.3, // 원정 재료/분 (해당 종족의 발견 형태 1종당)
+  ALTAR_BASE_COST: 10, // 재료 제단 강화 기본 비용
+  ALTAR_COST_GROWTH: 1.6, // 제단 강화 비용 증가율
+  ALTAR_BONUS_PER: 0.05, // 제단 1레벨당 영구 능력 +5%
+};
+
 export const CARE = {
   MAX_FULLNESS: 100,
   FEED_AMOUNT: 25, // 먹이 1회당 포만감 회복

@@ -9,6 +9,7 @@ import { economyData } from './economyData.js';
 import { evolutionData } from './evolutionData.js';
 import { careData } from './careData.js';
 import { rebirthData } from './rebirthData.js';
+import { expeditionData } from './expeditionData.js';
 
 const EXP_BASE = 20; // 레벨 1→2 필요 경험치
 const EXP_GROWTH = 1.4; // 레벨당 필요 경험치 증가율
@@ -46,9 +47,12 @@ export function createPlayerData() {
     const base = baseStatsForLevel(state.level);
     const bonus = economyData.getBonuses();
     const care = careData.getStatBonus(); // 훈련 보너스
-    // 진화 단계 × 전생 영구 배율 × 도감 수집 보상
+    // 진화 단계 × 전생 × 도감 수집 × 재료 제단 (영구 배율)
     const mult =
-      evolutionData.getMultiplier() * rebirthData.getMultiplier() * evolutionData.getCodexMultiplier();
+      evolutionData.getMultiplier() *
+      rebirthData.getMultiplier() *
+      evolutionData.getCodexMultiplier() *
+      expeditionData.getAltarMultiplier();
     const newMax = Math.round((base.maxHp + bonus.maxHp + care.hp) * mult);
     const delta = newMax - state.maxHp;
     state.maxHp = newMax;
@@ -73,7 +77,7 @@ export function createPlayerData() {
   function syncFromModifiers() {
     const b = economyData.getBonuses();
     const c = careData.getStatBonus();
-    const sig = `${b.attack}/${b.maxHp}/${evolutionData.getMultiplier()}/${c.attack}/${c.hp}/${rebirthData.getMultiplier()}/${evolutionData.getCodexMultiplier()}`;
+    const sig = `${b.attack}/${b.maxHp}/${evolutionData.getMultiplier()}/${c.attack}/${c.hp}/${rebirthData.getMultiplier()}/${evolutionData.getCodexMultiplier()}/${expeditionData.getAltarMultiplier()}`;
     if (sig === lastStatSig) return;
     lastStatSig = sig;
     applyStats({ fullHeal: false });
@@ -83,6 +87,7 @@ export function createPlayerData() {
   evolutionData.subscribe(syncFromModifiers);
   careData.subscribe(syncFromModifiers);
   rebirthData.subscribe(syncFromModifiers);
+  expeditionData.subscribe(syncFromModifiers);
 
   return {
     /** 현재 상태 스냅샷 (읽기 전용 복사본) */

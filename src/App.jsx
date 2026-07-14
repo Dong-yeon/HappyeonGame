@@ -9,6 +9,7 @@ import Evolve from './components/Evolve.jsx';
 import Rebirth from './components/Rebirth.jsx';
 import SpeciesPicker from './components/SpeciesPicker.jsx';
 import SkillIndicator from './components/SkillIndicator.jsx';
+import Expedition from './components/Expedition.jsx';
 
 export default function App() {
   const [hatchOpen, setHatchOpen] = useState(false);
@@ -20,6 +21,7 @@ export default function App() {
       <Shop />
       <Codex onHatch={() => setHatchOpen(true)} />
       <Care />
+      <Expedition />
       <SkillIndicator />
       <Evolve />
       <Rebirth />
