@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { PLAYER } from '../constants.js';
+import { audio } from '../audio.js';
 
 /**
  * 화랑 캐릭터 — 가장 가까운 적을 향해 자동 이동 / 좌우 반전 / 위층 점프 / 자동 공격
@@ -85,6 +86,7 @@ export default class Player extends Phaser.GameObjects.Rectangle {
       onComplete: () => slash.destroy(),
     });
 
+    audio.sfx('hit');
     target.takeDamage(attackPower);
   }
 

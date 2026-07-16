@@ -21,6 +21,7 @@ import { rebirthData } from '../../data/rebirthData.js';
 import { skillData } from '../../data/skillData.js';
 import { expeditionData } from '../../data/expeditionData.js';
 import { getYokaiTexture } from '../pixelArt.js';
+import { audio } from '../audio.js';
 
 /**
  * 메인 사냥터 씬 — 고정 크기 맵 (메이플스토리 일반 사냥터 방식) + 스테이지 진행 구조.
@@ -86,6 +87,7 @@ export default class GameScene extends Phaser.Scene {
         this.enemies.getChildren().slice().forEach((e) => e.destroy());
         this.applyStageBackground();
         this.showBanner(`🥚 부화! 🥚\n${evo.speciesName}`, '#ffd782');
+        audio.sfx('hatch');
         return;
       }
       if (evo.formId !== lastFormId) {
@@ -95,6 +97,7 @@ export default class GameScene extends Phaser.Scene {
         if (forward) {
           const label = evo.isFinal ? `✦ 승천! ✦\n${evo.formName}` : `✦ 진화! ✦\n${evo.formName}`;
           this.showBanner(label, '#ffe08a');
+          audio.sfx(evo.isFinal ? 'ascend' : 'evolve');
         }
       }
     });
@@ -107,6 +110,7 @@ export default class GameScene extends Phaser.Scene {
         this.enemies.getChildren().slice().forEach((e) => e.destroy());
         this.applyStageBackground();
         this.showBanner(`🔄 전생! 🔄\n환생 ${rb.count}회 · 영구 배율 ×${rb.multiplier}`, '#c0eb75');
+        audio.sfx('rebirth');
       }
     });
 
@@ -130,6 +134,7 @@ export default class GameScene extends Phaser.Scene {
       if (this.playerData.getState().hp < before) {
         this.cameras.main.shake(120, 0.006);
         this.showDamage(this.player.x, this.player.y - 20, enemy.damage, '#ff6b6b');
+        audio.sfx('hurt');
       }
     });
 
@@ -156,6 +161,7 @@ export default class GameScene extends Phaser.Scene {
 
       // 처치 이펙트 (juice): 파편 폭발 + 보스는 화면 흔들림
       this.deathBurst(x, y, color ?? 0xffffff, isBoss);
+      audio.sfx(isBoss ? 'boss' : 'kill');
       if (isBoss) this.cameras.main.shake(260, 0.012);
 
       // 컨디션(탈진) 시 획득 효율 감소
@@ -178,6 +184,7 @@ export default class GameScene extends Phaser.Scene {
           `LEVEL UP! Lv.${this.playerData.getState().level}`,
           '#4dabf7',
         );
+        audio.sfx('levelup');
       }
 
       if (isBoss) {
@@ -260,6 +267,7 @@ export default class GameScene extends Phaser.Scene {
 
     this.lastSkillTime = time;
     skillData.markCast();
+    audio.sfx('skill');
     this.showFloatingText(px, py - this.player.height, skill.name, this.hex(skill.color));
   }
 
@@ -352,6 +360,7 @@ export default class GameScene extends Phaser.Scene {
     economyData.gainMaterials(mats);
     this.showFloatingText(this.player.x, this.player.y - 90, `+${mats} 재료`, '#c8b6ff');
     this.showBanner(`✦ 챕터 ${cleared} 클리어! ✦\n▶ 챕터 ${s.chapter} 진입 (+${mats} 재료)`, '#8ce99a');
+    audio.sfx('clear');
   }
 
   /** 현재 스테이지 배경색 적용 */

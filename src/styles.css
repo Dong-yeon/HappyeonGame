@@ -1185,3 +1185,46 @@ body {
   color: #7d7893;
   text-align: center;
 }
+
+/* ===== 사운드 설정 (우하단, 스킬 패널 위) ===== */
+.audio-ctl {
+  position: absolute;
+  bottom: 104px;
+  right: 16px;
+  z-index: 21;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.audio-btn {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ink, rgba(26, 20, 12, 0.93));
+  border: 1px solid var(--gold-line, rgba(201, 162, 39, 0.42));
+  border-radius: 8px;
+  color: var(--cream, #efe4cb);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.08s ease, border-color 0.15s ease;
+}
+
+.audio-btn:hover {
+  border-color: var(--gold-lt, #f0d080);
+  transform: translateY(-1px);
+}
+
+.audio-gear {
+  font-size: 15px;
+}
+
+.audio-vol {
+  width: 90px;
+  height: 4px;
+  accent-color: var(--gold, #d9b24a);
+  cursor: pointer;
+}
