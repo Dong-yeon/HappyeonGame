@@ -105,9 +105,11 @@ export default class GameScene extends Phaser.Scene {
         lastFormId = evo.formId;
         lastTier = evo.tier;
         if (forward) {
-          const label = evo.isFinal ? `✦ 승천! ✦\n${evo.formName}` : `✦ 진화! ✦\n${evo.formName}`;
+          let label;
+          if (evo.tier >= 4) label = `✦ 합체 진화! ✦\n${evo.formName}`;
+          else label = evo.isFinal ? `✦ 승천! ✦\n${evo.formName}` : `✦ 진화! ✦\n${evo.formName}`;
           this.showBanner(label, '#ffe08a');
-          audio.sfx(evo.isFinal ? 'ascend' : 'evolve');
+          audio.sfx(evo.tier >= 4 || evo.isFinal ? 'ascend' : 'evolve');
           retentionData.recordEvolve();
         }
         this.syncRetention();
@@ -584,9 +586,9 @@ export default class GameScene extends Phaser.Scene {
     this.playerSprite.setAlpha(p.alpha); // 무적 깜빡임 동기화
   }
 
-  /** 형태(tier)별 표시 크기 — 새끼는 작게, 최종체는 크게 (성장감) */
+  /** 형태(tier)별 표시 크기 — 새끼는 작게, 궁극체는 가장 크게 (성장감) */
   _applyYokaiSize(tier) {
-    const size = tier >= 3 ? [64, 74] : tier === 2 ? [48, 58] : [40, 46];
+    const size = tier >= 4 ? [78, 90] : tier === 3 ? [64, 74] : tier === 2 ? [48, 58] : [40, 46];
     this.playerSprite.setDisplaySize(size[0], size[1]);
   }
 

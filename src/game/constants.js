@@ -80,6 +80,11 @@ export const CHAPTER = {
   RAID_ESCORT_MAT: 1, // 호위 병사 1명 격파 시 추가 재료
 };
 
+// ===== 특수 진화(합체) — 궁극체 각성 아이템 =====
+export const FUSION = {
+  CATALYST_COST_MAT: 50, // "합체의 정수" 1개 제작 비용 (원정 재료)
+};
+
 // ===== 비정기 토벌대 기습 이벤트 (악명도 기반, 진행과 무관한 보너스 웨이브) =====
 export const AMBUSH = {
   NOTORIETY_FIRST: 25, // 첫 기습까지 누적 처치 수

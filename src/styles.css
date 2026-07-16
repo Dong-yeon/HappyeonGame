@@ -358,6 +358,22 @@ body,
   letter-spacing: 0.5px;
 }
 
+/* 합체(궁극체) 진화 — 최종체에서 전생 패널과 겹치지 않도록 위로 오프셋 + 금박 강조 */
+.evolve.fusion {
+  bottom: 104px;
+  border-color: var(--gold, #d9b24a);
+  box-shadow: 0 0 30px rgba(240, 208, 128, 0.5);
+}
+
+.evolve.fusion .evolve-title {
+  color: var(--gold-lt, #f0d080);
+}
+
+.evolve-fusion-sub {
+  font-size: 11px;
+  color: #cbbf9f;
+}
+
 .evolve-options {
   display: flex;
   gap: 10px;

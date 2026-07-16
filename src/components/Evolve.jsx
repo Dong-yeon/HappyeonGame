@@ -1,21 +1,51 @@
 import { useEffect, useState } from 'react';
 import { evolutionData } from '../data/evolutionData.js';
 import { careData } from '../data/careData.js';
+import { economyData } from '../data/economyData.js';
 
 /**
- * 진화 갈래 선택 패널 — 정기가 충만하면 하단 중앙에 나타난다.
- * 육성 방향(공격/체력 훈련)에 따라 갈래가 잠금/해금되며, 해금된 갈래를 골라 진화한다.
+ * 진화 패널 — 하단 중앙.
+ *  - 정기 충만 시: 진화 갈래 선택 (육성 방향에 따라 잠금/해금)
+ *  - 최종체 + 모든 최종체 발견 + 합체의 정수 보유 시: 합체(궁극체) 진화 (상단에 별도 표시)
  */
 export default function Evolve() {
   const [evo, setEvo] = useState(evolutionData.getState());
   const [care, setCare] = useState(careData.getState());
+  const [eco, setEco] = useState(economyData.getState());
 
   useEffect(() => evolutionData.subscribe(setEvo), []);
   useEffect(() => careData.subscribe(setCare), []);
+  useEffect(() => economyData.subscribe(setEco), []);
 
-  if (!evo.essenceReady) return null;
+  const fusion = evolutionData.getFusionInfo();
+  const catalyst = eco.fusionCatalyst || 0;
+  const showFusion = fusion.ready && catalyst >= 1;
 
-  // 우세 훈련 방향 → 진화 갈래 조건
+  if (!evo.essenceReady && !showFusion) return null;
+
+  // ===== 합체(궁극체) — 정수 보유 시 최종체에서 각성 =====
+  if (showFusion) {
+    return (
+      <div className="evolve fusion">
+        <div className="evolve-title">✦ 합체 진화 ✦ — 궁극체 각성</div>
+        <div className="evolve-fusion-sub">세 최종체의 힘을 합쳐 각성합니다 · 합체의 정수 ×{catalyst}</div>
+        <div className="evolve-options">
+          <button
+            className="evolve-opt"
+            style={{ borderColor: hex(fusion.targetColor) }}
+            onClick={() => {
+              if (economyData.useFusionCatalyst()) evolutionData.fuse();
+            }}
+          >
+            <span className="evolve-opt-name">{fusion.targetName}</span>
+            <span className="evolve-opt-meta">정수 1 소모 · ×{fusion.targetMult} 능력</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ===== 일반 진화 갈래 =====
   const dominant = care.dominant;
   const options = evolutionData.getAvailableEvolutions({ dominant });
   const multiple = options.length > 1;

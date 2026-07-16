@@ -380,6 +380,107 @@ export const SPECIES = {
   },
 };
 
+/**
+ * 특수 진화(합체) — 궁극체(비전체, tier 4).
+ * 정기로는 도달 불가. 해당 종족의 최종체 3갈래를 모두 도감에 발견 + "합체의 정수"(재료로 제작)를
+ * 소모해야 각성한다. 세 갈래의 힘을 하나로 합친 궁극 형태 (디지몬 합체 진화 개념).
+ */
+const SPECIAL_FORMS = {
+  imugi: {
+    id: 'yeouiju_ryong',
+    form: {
+      name: '여의주룡',
+      color: 0xffe066,
+      mult: 5.5,
+      tier: 4,
+      special: true,
+      skill: { name: '여의주 강림', type: 'beam', mult: 4.2, cooldown: 2600, range: 470, color: 0xffe066 },
+      evolveTo: [],
+    },
+  },
+  gumiho: {
+    id: 'gumi_shinho',
+    form: {
+      name: '구미신호',
+      color: 0xf783ac,
+      mult: 5.5,
+      tier: 4,
+      special: true,
+      skill: { name: '구미 겁화', type: 'aoe', mult: 3.3, cooldown: 2800, range: 270, color: 0xf783ac },
+      evolveTo: [],
+    },
+  },
+  dokkaebi: {
+    id: 'dokkaebi_shinjang',
+    form: {
+      name: '도깨비 신장',
+      color: 0xff6b6b,
+      mult: 5.5,
+      tier: 4,
+      special: true,
+      skill: { name: '신장 대환란', type: 'aoe', mult: 3.4, cooldown: 2800, range: 280, color: 0xff8787 },
+      evolveTo: [],
+    },
+  },
+  bulgasari: {
+    id: 'bulgasal',
+    form: {
+      name: '불가살',
+      color: 0x91a7ff,
+      mult: 5.5,
+      tier: 4,
+      special: true,
+      skill: { name: '불가살 강타', type: 'strike', mult: 5.0, cooldown: 2400, range: 150, color: 0x91a7ff },
+      evolveTo: [],
+    },
+  },
+  geuseundae: {
+    id: 'geuseundae_masin',
+    form: {
+      name: '그슨대 마신',
+      color: 0x9775fa,
+      mult: 5.5,
+      tier: 4,
+      special: true,
+      skill: { name: '마신 심연', type: 'beam', mult: 4.0, cooldown: 2700, range: 470, color: 0xb197fc },
+      evolveTo: [],
+    },
+  },
+  gureongi: {
+    id: 'sawang',
+    form: {
+      name: '사왕',
+      color: 0x82c91e,
+      mult: 5.5,
+      tier: 4,
+      special: true,
+      skill: { name: '만독 강림', type: 'beam', mult: 4.0, cooldown: 2700, range: 470, color: 0xa9e34b },
+      evolveTo: [],
+    },
+  },
+  jeoseung: {
+    id: 'yeomna_daewang',
+    form: {
+      name: '염라대왕',
+      color: 0xf03e3e,
+      mult: 5.5,
+      tier: 4,
+      special: true,
+      skill: { name: '염라 대심판', type: 'aoe', mult: 3.4, cooldown: 2800, range: 290, color: 0xff8787 },
+      evolveTo: [],
+    },
+  },
+};
+
+// 각 종족에 궁극체 형태와 링크(special = 궁극체 id)를 주입
+for (const [key, sp] of Object.entries(SPECIES)) {
+  const s = SPECIAL_FORMS[key];
+  if (s) {
+    sp.special = s.id;
+    sp.forms[s.id] = s.form;
+  }
+}
+
 /** 기본 시작 종족 */
 export const DEFAULT_SPECIES = 'imugi';
 

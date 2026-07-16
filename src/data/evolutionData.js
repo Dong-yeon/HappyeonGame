@@ -78,6 +78,32 @@ export function createEvolutionData() {
     if (!state.discovered.includes(id)) state.discovered.push(id);
   }
 
+  /** 합체(궁극체) 조건 평가 — getFusionInfo/fuse 공용 */
+  function computeFusion() {
+    const sp = getSpecies(state.species);
+    const specialId = sp.special;
+    const cur = currentForm();
+    const finals = Object.entries(sp.forms)
+      .filter(([, f]) => f.tier === 3)
+      .map(([id, f]) => ({ id, name: f.name, discovered: state.discovered.includes(id) }));
+    const allFinalsDiscovered = finals.length > 0 && finals.every((f) => f.discovered);
+    const target = specialId ? sp.forms[specialId] : null;
+    const atFinal = cur.tier === 3;
+    const alreadySpecial = cur.tier >= 4;
+    return {
+      supported: !!specialId,
+      atFinal,
+      alreadySpecial,
+      targetId: specialId,
+      targetName: target ? target.name : null,
+      targetColor: target ? target.color : null,
+      targetMult: target ? target.mult : null,
+      finals,
+      allFinalsDiscovered,
+      ready: !!specialId && atFinal && allFinalsDiscovered && !alreadySpecial,
+    };
+  }
+
   return {
     getState() {
       return snapshot();
@@ -168,6 +194,25 @@ export function createEvolutionData() {
       state.essence -= branch.essence; // 초과분 이월
       state.formId = toFormId;
       markDiscovered(toFormId);
+      emit();
+      return true;
+    },
+
+    /**
+     * 합체(특수 진화) 정보 — 궁극체 각성 조건.
+     * 조건: 현재 최종체(tier 3) + 해당 종족 최종체 3갈래를 모두 도감에 발견.
+     * (합체 아이템 소모는 호출부/economyData 가 담당해 이 모듈의 순수성을 유지)
+     */
+    getFusionInfo() {
+      return computeFusion();
+    },
+
+    /** 합체(특수 진화) 실행 — 조건 충족 시 궁극체로. 성공하면 true (정수 소모는 호출부) */
+    fuse() {
+      const info = computeFusion();
+      if (!info.ready) return false;
+      state.formId = info.targetId;
+      markDiscovered(state.formId);
       emit();
       return true;
     },

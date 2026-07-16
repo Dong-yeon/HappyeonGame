@@ -8,7 +8,7 @@
  * 업그레이드 효과(공격력·체력 보너스, 골드 배율)는 이 모듈이 "값"으로만 계산하고,
  * 실제 스탯 반영은 playerData 가 이 모듈을 구독해서 처리한다 (일방 의존: playerData → economyData).
  */
-import { GOLD } from '../game/constants.js';
+import { GOLD, FUSION } from '../game/constants.js';
 
 const STORAGE_KEY = 'gunungrok.economy.v1';
 
@@ -48,6 +48,7 @@ export function createEconomyData() {
   const state = {
     gold: 0,
     materials: 0, // 재료 — 챕터 보스/원정으로 수급
+    fusionCatalyst: 0, // 합체의 정수 — 재료로 제작, 궁극체 합체에 소모
     upgrades: { attack: 0, maxHp: 0, goldGain: 0 },
     goldPerSec: 0, // 최근 골드 획득 속도(EMA) — 오프라인 보상 계산에 사용
     pendingOfflineReward: null, // { gold, seconds } — 수령 대기 중인 오프라인 보상
@@ -64,6 +65,7 @@ export function createEconomyData() {
         JSON.stringify({
           gold: state.gold,
           materials: state.materials,
+          fusionCatalyst: state.fusionCatalyst,
           upgrades: state.upgrades,
           goldPerSec: state.goldPerSec,
           lastSeen: Date.now(),
@@ -86,6 +88,7 @@ export function createEconomyData() {
 
     state.gold = saved.gold ?? 0;
     state.materials = saved.materials ?? 0;
+    state.fusionCatalyst = saved.fusionCatalyst ?? 0;
     state.upgrades = { attack: 0, maxHp: 0, goldGain: 0, ...(saved.upgrades || {}) };
     state.goldPerSec = saved.goldPerSec ?? 0;
 
@@ -189,6 +192,27 @@ export function createEconomyData() {
       return true;
     },
 
+    // ===== 합체의 정수 (특수 진화 아이템) =====
+
+    /** 재료로 합체의 정수 1개 제작 (부족하면 false) */
+    craftFusionCatalyst() {
+      if (state.materials < FUSION.CATALYST_COST_MAT) return false;
+      state.materials -= FUSION.CATALYST_COST_MAT;
+      state.fusionCatalyst += 1;
+      persist();
+      emit();
+      return true;
+    },
+
+    /** 합체의 정수 1개 소모 (없으면 false) */
+    useFusionCatalyst() {
+      if (state.fusionCatalyst <= 0) return false;
+      state.fusionCatalyst -= 1;
+      persist();
+      emit();
+      return true;
+    },
+
     // ===== 업그레이드 =====
 
     /** 스탯 보너스 (playerData 가 구독해서 반영) */
@@ -258,6 +282,7 @@ export function createEconomyData() {
       return {
         gold: state.gold,
         materials: state.materials,
+        fusionCatalyst: state.fusionCatalyst,
         upgrades: { ...state.upgrades },
         goldPerSec: state.goldPerSec,
       };
@@ -268,6 +293,7 @@ export function createEconomyData() {
       if (!s) return;
       state.gold = s.gold ?? 0;
       state.materials = s.materials ?? 0;
+      state.fusionCatalyst = s.fusionCatalyst ?? 0;
       state.upgrades = { attack: 0, maxHp: 0, goldGain: 0, ...(s.upgrades || {}) };
       state.goldPerSec = s.goldPerSec ?? 0;
       state.pendingOfflineReward = null;

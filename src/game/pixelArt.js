@@ -411,7 +411,8 @@ function yokaiPalette(color) {
 /** 종족·단계·형태 색에 맞춘 요괴 텍스처 (종족+단계+색별 캐시) */
 export function getYokaiTexture(scene, speciesKey, tier, color) {
   const bySpecies = SPECIES_GRIDS[speciesKey] || SPECIES_GRIDS.imugi;
-  const grid = bySpecies[tier] || bySpecies[2] || bySpecies[1];
+  // 궁극체(tier 4)는 전용 격자가 없으면 최종체(tier 3) 도트를 재사용 (색·크기로 차별화)
+  const grid = bySpecies[tier] || bySpecies[3] || bySpecies[2] || bySpecies[1];
   const key = `yokai_${speciesKey}_${tier}_${color.toString(16)}`;
   return makePixelTexture(scene, key, grid, yokaiPalette(color));
 }
