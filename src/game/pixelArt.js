@@ -36,38 +36,164 @@ export function makePixelTexture(scene, key, grid, palette) {
   return key;
 }
 
-// ===== 요괴(플레이어) — 형태 색으로 몸을 칠하고 뿔/눈을 얹은 도트 =====
-// B=몸, D=외곽, H=뿔, W=눈흰자, K=눈동자
-const YOKAI = [
-  '...D......D...',
-  '..DHD....DHD..',
-  '..DHD....DHD..',
-  '...DBBBBBBD...',
-  '..DBBBBBBBBD..',
-  '.DBBBBBBBBBBD.',
-  '.DBWKBBBBWKBD.',
-  '.DBWWBBBBWWBD.',
-  '.DBBBBBBBBBBD.',
-  '.DBBBDDDDBBBD.',
-  '.DBBBBBBBBBBD.',
-  '..DBBBBBBBBD..',
-  '..DBBBBBBBBD..',
-  '..DBBBBBBBBD..',
-  '..DB.DDDD.BD..',
-  '..DD......DD..',
-];
+// ===== 요괴(플레이어) — 종족별 고유 도트, 형태 색으로 채색 =====
+// 공통 토큰: B=몸(색), D=외곽(색 어둡게), S=음영/뿔(색 더 어둡게),
+//           W=눈흰자, K=눈동자, N=검정 액센트, R=붉은 액센트, F=뼈/흰털
+const SPECIES_GRIDS = {
+  // 이무기 — 뿔 달린 용/뱀 (몸이 아래로 뻗음)
+  imugi: [
+    '....S....S....',
+    '....S....S....',
+    '...DBBBBBBBD..',
+    '..DBBBBBBBBBD.',
+    '..DBWKBBWKBBD.',
+    '..DBBBBBBBBBD.',
+    '..DBBBBBBBBBD.',
+    '...DBBBBBBBD..',
+    '....DBBBBBD...',
+    '.....DBBBBD...',
+    '......DBBBBD..',
+    '.......DBBBD..',
+    '.......DBBBD..',
+    '......DBBSD...',
+    '.....DBSD.....',
+    '.....DD.......',
+  ],
+  // 구미호 — 뾰족 귀 + 꼬리
+  gumiho: [
+    '..S......S....',
+    '.SBS....SBS...',
+    '..DBBBBBBBD...',
+    '.DBBBBBBBBBD..',
+    '.DBWKBBWKBBD..',
+    '.DBBBBBBBBBD..',
+    '.DBBBBBBBBBDS.',
+    '..DBBBBBBBDBS.',
+    '...DBBBBBBDBS.',
+    '....DBBBBDBBS.',
+    '....DBBBBDBS..',
+    '....DBBBBD....',
+    '....DB..BD....',
+    '....DB..BD....',
+    '...FF..FF.....',
+    '..............',
+  ],
+  // 도깨비 — 굵은 뿔 + 송곳니 + 몽둥이
+  dokkaebi: [
+    '......SS......',
+    '.....SSSS.....',
+    '..DBBBBBBBBD..',
+    '.DBBBBBBBBBBD.',
+    '.DBWKBBBBWKBD.',
+    '.DBBBBBBBBBBD.',
+    '.DBKBKBKBKBBD.NN',
+    '.DBBBBBBBBBBDNN.',
+    '..DBBBBBBBBDN..',
+    '..DBBBBBBBBD...',
+    '...DBBBBBBD....',
+    '...DBBBBBBD....',
+    '...DB....BD....',
+    '..NDB....BDN...',
+    '..NN......NN...',
+    '..............',
+  ],
+  // 불가사리 — 육중한 몸통 + 작은 귀
+  bulgasari: [
+    '..............',
+    '...S......S...',
+    '..DSBBBBBBSD..',
+    '.DBBBBBBBBBBD.',
+    '.DBWKBBBBWKBD.',
+    '.DBBBBBBBBBBD.',
+    'DBBBBBBBBBBBBD',
+    'DBBBBSSSSBBBBD',
+    'DBBBBBBBBBBBBD',
+    'DBBBBBBBBBBBBD',
+    '.DBBBBBBBBBBD.',
+    '.DBBBBBBBBBBD.',
+    '..DBB..BBD....',
+    '..DBB..BBD....',
+    '..DD....DD....',
+    '..............',
+  ],
+  // 그슨대 — 어둠 실루엣 + 붉은 눈 + 흩어지는 하단
+  geuseundae: [
+    '....DBBBBD....',
+    '...DBBBBBBD...',
+    '...DBRBBRBD...',
+    '...DBBBBBBD...',
+    '..DBBBBBBBBD..',
+    '..DBBBBBBBBD..',
+    '..DBBBBBBBBD..',
+    '..DBBBBBBBBD..',
+    '...NBBBBBBN...',
+    '...NNBBBBNN...',
+    '....NNBBNN....',
+    '....N.NN.N....',
+    '...N..N...N...',
+    '..N...N....N..',
+    '..............',
+    '..............',
+  ],
+  // 구렁이 — 뿔 없는 뱀 (지그재그 몸통 + 붉은 혀)
+  gureongi: [
+    '.....DBBBD....',
+    '....DBBBBBD...',
+    '....DWKBWKD...',
+    '....DBBBBBD...',
+    '.....DBBBD.R..',
+    '......DBBBD...',
+    '.......DBBBD..',
+    '........DBBBD.',
+    '.......DBBBD..',
+    '......DBBBD...',
+    '.....DBBBD....',
+    '....DBBBD.....',
+    '...DBBBD......',
+    '...DBBSD......',
+    '...DBSD.......',
+    '...DD.........',
+  ],
+  // 저승사자 — 갓 + 창백한 얼굴 + 낫
+  jeoseung: [
+    '.NNNNNNNNNN...',
+    '....NNNN......',
+    '...FFFFFF.....',
+    '...FKFFKF.....',
+    '...FFFFFF.....',
+    '..DBBBBBBD.NN.',
+    '.DBBBBBBBBDN..',
+    '.DBBBBBBBBDNNN',
+    '.DBBBBBBBBDN..',
+    '.DBBBBBBBBDN..',
+    '.DBBBBBBBBDN..',
+    '..DBBBBBBD.N..',
+    '..DBBBBBBD.N..',
+    '..DBBBBBBD....',
+    '..DB....BD....',
+    '..DD....DD....',
+  ],
+};
 
-/** 형태 색에 맞춘 요괴 텍스처 (색별 캐시) */
-export function getYokaiTexture(scene, color) {
-  const key = `yokai_${color.toString(16)}`;
-  return makePixelTexture(scene, key, YOKAI, {
+function yokaiPalette(color) {
+  return {
     B: color,
     D: darken(color, 0.4),
-    H: darken(color, 0.28),
+    S: darken(color, 0.62),
     W: 0xf6f6f6,
     K: 0x141414,
+    N: 0x201d29,
+    R: 0xe03131,
+    F: 0xf3ecdb,
     '.': null,
-  });
+  };
+}
+
+/** 종족·형태 색에 맞춘 요괴 텍스처 (종족+색별 캐시) */
+export function getYokaiTexture(scene, speciesKey, color) {
+  const grid = SPECIES_GRIDS[speciesKey] || SPECIES_GRIDS.imugi;
+  const key = `yokai_${speciesKey}_${color.toString(16)}`;
+  return makePixelTexture(scene, key, grid, yokaiPalette(color));
 }
 
 // ===== 인간 병사(적) — 투구/얼굴/갑주/창 =====

@@ -374,10 +374,12 @@ export default class GameScene extends Phaser.Scene {
 
   /** 요괴(플레이어) 도트 스프라이트 — Player.js 는 건드리지 않고 씬이 따라다니게 */
   createPlayerDecor() {
-    const color = evolutionData.getColor();
-    this.playerSprite = this.add.sprite(this.player.x, this.player.y, getYokaiTexture(this, color)).setDepth(3);
+    const evo = evolutionData.getState();
+    this.playerSprite = this.add
+      .sprite(this.player.x, this.player.y, getYokaiTexture(this, evo.species, evo.color))
+      .setDepth(3);
     this.playerSprite.setDisplaySize(48, 58);
-    this._lastYokaiColor = color;
+    this._lastYokaiKey = `${evo.species}_${evo.color}`;
     // 사각형 몸/방향 마커 숨김 (도트 스프라이트로 대체)
     this.player.setVisible(false);
     if (this.player.facingMarker) this.player.facingMarker.setVisible(false);
@@ -386,11 +388,12 @@ export default class GameScene extends Phaser.Scene {
   updatePlayerDecor() {
     if (!this.playerSprite) return;
     const p = this.player;
-    const color = evolutionData.getColor();
-    if (color !== this._lastYokaiColor) {
-      this.playerSprite.setTexture(getYokaiTexture(this, color));
+    const evo = evolutionData.getState();
+    const key = `${evo.species}_${evo.color}`;
+    if (key !== this._lastYokaiKey) {
+      this.playerSprite.setTexture(getYokaiTexture(this, evo.species, evo.color));
       this.playerSprite.setDisplaySize(48, 58);
-      this._lastYokaiColor = color;
+      this._lastYokaiKey = key;
     }
     this.playerSprite.setPosition(p.x, p.y);
     this.playerSprite.setFlipX(p.facing < 0);
