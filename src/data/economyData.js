@@ -8,7 +8,7 @@
  * 업그레이드 효과(공격력·체력 보너스, 골드 배율)는 이 모듈이 "값"으로만 계산하고,
  * 실제 스탯 반영은 playerData 가 이 모듈을 구독해서 처리한다 (일방 의존: playerData → economyData).
  */
-import { GOLD, FUSION } from '../game/constants.js';
+import { GOLD, FUSION, AD } from '../game/constants.js';
 
 const STORAGE_KEY = 'gunungrok.economy.v1';
 
@@ -258,6 +258,17 @@ export function createEconomyData() {
     },
 
     // ===== 오프라인 보상 =====
+
+    /** 오프라인 보상 광고 2배 (아직 수령 전 · 미적용 시). 성공하면 true */
+    doubleOfflineReward() {
+      const r = state.pendingOfflineReward;
+      if (!r || r.doubled) return false;
+      r.gold *= AD.OFFLINE_DOUBLE;
+      r.doubled = true;
+      persist();
+      emit();
+      return true;
+    },
 
     /** 대기 중인 오프라인 보상 수령 */
     claimOfflineReward() {

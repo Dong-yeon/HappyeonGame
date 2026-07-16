@@ -25,6 +25,7 @@ import { retentionData } from '../../data/retentionData.js';
 import { getYokaiTexture } from '../pixelArt.js';
 import { audio } from '../audio.js';
 import { fmt } from '../../format.js';
+import { adData } from '../../data/adData.js';
 
 /**
  * 메인 사냥터 씬 — 고정 크기 맵 (메이플스토리 일반 사냥터 방식) + 스테이지 진행 구조.
@@ -189,8 +190,8 @@ export default class GameScene extends Phaser.Scene {
       economyData.gainGold(gold);
       this.showFloatingText(x + 14, y - 30, `+${fmt(gold)} G`, '#ffd166');
 
-      // 정기 획득 (인간 포식 → 진화 재화, 컨디션 반영)
-      const essence = Math.max(1, Math.round(this.rollEssence(isBoss) * gainMul));
+      // 정기 획득 (인간 포식 → 진화 재화, 컨디션 + 광고 부스트 반영)
+      const essence = Math.max(1, Math.round(this.rollEssence(isBoss) * gainMul * adData.getEssenceMultiplier()));
       evolutionData.gainEssence(essence);
       this.showFloatingText(x - 14, y - 48, `+${fmt(essence)} 정기`, '#8ce9ff');
 

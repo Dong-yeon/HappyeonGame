@@ -85,6 +85,15 @@ export const FUSION = {
   CATALYST_COST_MAT: 50, // "합체의 정수" 1개 제작 비용 (원정 재료)
 };
 
+// ===== 리워드 광고 훅 (실제 SDK 연결 전 시뮬레이션 값) =====
+export const AD = {
+  WATCH_MS: 1500, // (시뮬레이션) 광고 시청 시간
+  OFFLINE_DOUBLE: 2, // 오프라인 보상 배수
+  ESSENCE_BOOST_MULT: 2, // 정기 획득 부스트 배수
+  ESSENCE_BOOST_MS: 180000, // 정기 부스트 지속(3분)
+  ESSENCE_BOOST_COOLDOWN_MS: 300000, // 부스트 종료 후 재충전(5분)
+};
+
 // ===== 비정기 토벌대 기습 이벤트 (악명도 기반, 진행과 무관한 보너스 웨이브) =====
 export const AMBUSH = {
   NOTORIETY_FIRST: 25, // 첫 기습까지 누적 처치 수

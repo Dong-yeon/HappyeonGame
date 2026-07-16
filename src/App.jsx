@@ -13,6 +13,8 @@ import Expedition from './components/Expedition.jsx';
 import Retention from './components/Retention.jsx';
 import Settings from './components/Settings.jsx';
 import Title from './components/Title.jsx';
+import AdBoost from './components/AdBoost.jsx';
+import AdModal from './components/AdModal.jsx';
 
 const BASE_W = 1280;
 const BASE_H = 720;
@@ -55,11 +57,13 @@ export default function App() {
         <Expedition />
         <Retention />
         <SkillIndicator />
+        <AdBoost />
         <Settings />
         <Evolve />
         <Rebirth />
         <OfflineReward />
         <SpeciesPicker hatchOpen={hatchOpen} onClose={() => setHatchOpen(false)} />
+        <AdModal />
         <Title />
       </div>
       {/* 세로 모드 안내 (모바일) — 스테이지 밖 전체화면 오버레이 */}
