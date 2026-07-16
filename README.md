@@ -1,14 +1,14 @@
-# 군웅록 (群雄錄)
+# 요괴록 (妖怪錄)
 
-한국 삼국시대 배경의 방치형 액션 플랫포머 게임.
+한국 요괴가 주인공인 방치형 요괴 육성 게임.
 
-> 게임 기획 · 직업 시스템 · 개발 로드맵 등 상세 문서는 [DESIGN.md](./DESIGN.md) 참고.
+> 게임 기획 · 진화 트리 · 개발 로드맵 등 상세 문서는 [DESIGN.md](./DESIGN.md) 참고.
 
 ## 기술 스택
 
 - **Frontend**: React + Phaser.js (Arcade Physics), Vite
-- **Backend**: Spring Boot (예정)
-- **DB**: SQLite (예정)
+- **Backend**: Spring Boot + SQLite (선택 — 없으면 브라우저 로컬 저장으로 단독 동작)
+- **웹 배포**: itch.io (정적 HTML5 빌드)
 - **모바일 배포**: Capacitor.js (예정)
 
 ## 실행 방법
@@ -18,7 +18,19 @@ npm install
 npm run dev
 ```
 
-브라우저에서 http://localhost:5173 접속.
+브라우저에서 http://localhost:5173 접속. (백엔드 없이도 로컬 저장으로 동작)
+
+## 빌드 & itch.io 배포
+
+```bash
+npm run build        # dist/ 정적 빌드 생성
+npm run build:itch   # 빌드 + itch.io 업로드용 yokairok-web.zip 생성
+```
+
+- `vite.config.js` 의 `base: './'` 로 **상대 경로** 빌드 → itch.io iframe(하위 경로)에서 정상 동작
+- 백엔드 미연동 환경(itch)에서는 **전체 진행이 브라우저 localStorage 에 저장**되어 새로고침에도 유지
+- itch.io: 새 프로젝트 → **Kind of project: HTML** → `yokairok-web.zip` 업로드 → *This file will be played in the browser* 체크 → 뷰포트 1280×720, **Fullscreen 허용** 권장
+- 도트·사운드·아이콘 모두 코드/데이터 URI 로 자체 생성 → 외부 에셋·CDN 의존 없음
 
 ## 컨셉
 
@@ -58,7 +70,8 @@ src/
 │   ├── Care.jsx              # 육성 패널 (먹이/훈련/컨디션)
 │   ├── Expedition.jsx        # 원정 패널 (비활성 요괴 재료 수급 + 재료 제단)
 │   ├── Retention.jsx         # 일일 미션·업적·출석 보상 패널 (탭)
-│   ├── AudioControls.jsx     # 사운드 설정 (음소거/볼륨)
+│   ├── Settings.jsx          # 설정 (음소거/볼륨/저장 초기화/게임 정보)
+│   ├── Title.jsx             # 타이틀(시작) 화면 — 탭 시 사운드 활성화
 │   ├── Rebirth.jsx           # 전생(환생) 패널 (최종 진화 시)
 │   ├── SkillIndicator.jsx    # 형태별 스킬 이름·쿨타임 표시
 │   ├── SpeciesPicker.jsx     # 요괴 종족 선택 (신규 플레이어)

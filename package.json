@@ -1,13 +1,14 @@
 {
-  "name": "gunungrok",
+  "name": "yokairok",
   "private": true,
-  "version": "0.1.0",
-  "description": "군웅록 - 한국 삼국시대 배경 방치형 액션 플랫포머",
+  "version": "1.0.0",
+  "description": "요괴록 (妖怪錄) - 한국 요괴 육성 방치형 게임",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:itch": "vite build && cd dist && zip -r -FS ../yokairok-web.zip . && cd .. && echo '\\n✅ itch.io 업로드용 dist/../yokairok-web.zip 생성 완료'"
   },
   "dependencies": {
     "phaser": "^3.80.1",

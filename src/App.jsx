@@ -11,7 +11,8 @@ import SpeciesPicker from './components/SpeciesPicker.jsx';
 import SkillIndicator from './components/SkillIndicator.jsx';
 import Expedition from './components/Expedition.jsx';
 import Retention from './components/Retention.jsx';
-import AudioControls from './components/AudioControls.jsx';
+import Settings from './components/Settings.jsx';
+import Title from './components/Title.jsx';
 
 export default function App() {
   const [hatchOpen, setHatchOpen] = useState(false);
@@ -26,11 +27,12 @@ export default function App() {
       <Expedition />
       <Retention />
       <SkillIndicator />
-      <AudioControls />
+      <Settings />
       <Evolve />
       <Rebirth />
       <OfflineReward />
       <SpeciesPicker hatchOpen={hatchOpen} onClose={() => setHatchOpen(false)} />
+      <Title />
     </div>
   );
 }

@@ -16,11 +16,13 @@ import { retentionData } from './retentionData.js';
 
 const ENDPOINT = '/api/save';
 const USER_ID = 'local'; // 단일 플레이어 프로토타입 (멀티유저는 추후 인증 연동)
+const LOCAL_KEY = 'yokai.save.v1'; // 백엔드 미기동 시 전체 저장(itch 등 정적 배포)
 const DEBOUNCE_MS = 2000;
 const INTERVAL_MS = 15000;
 
 let mode = 'local'; // 'server' | 'local'
 let saveTimer = null;
+let resetting = false; // 초기화 중에는 저장 억제
 
 function gather() {
   return {
@@ -35,9 +37,48 @@ function gather() {
   };
 }
 
-/** 서버에 즉시 저장 (server 모드에서만) */
+/** 불러온 전체 상태를 각 모듈에 복원 (서버·로컬 공통) */
+function applyAll(data) {
+  if (!data) return;
+  evolutionData.loadSaveState(data.evolution); // 스탯 배율 먼저 복원 (playerData 가 참조)
+  careData.loadSaveState(data.care); // 훈련 보너스도 먼저 복원
+  rebirthData.loadSaveState(data.rebirth); // 전생 배율도 먼저 복원
+  expeditionData.loadSaveState(data.expedition); // 제단 배율도 먼저 복원
+  retentionData.loadSaveState(data.retention);
+  playerData.loadSaveState(data.player);
+  stageData.loadSaveState(data.stage);
+  economyData.loadSaveState(data.economy);
+  economyData.computeOffline(data.lastSeen); // 기록된 lastSeen 기준 오프라인 보상
+}
+
+/** 로컬(localStorage)에 전체 상태 저장 — 백엔드 없이도 진행이 영속화되도록 */
+function saveLocal() {
+  if (resetting || typeof localStorage === 'undefined') return;
+  try {
+    localStorage.setItem(LOCAL_KEY, JSON.stringify({ ...gather(), lastSeen: Date.now() }));
+  } catch (e) {
+    /* 용량 초과 등은 무시 */
+  }
+}
+
+/** 부팅 시 로컬 전체 저장 복원 */
+function loadLocal() {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    const data = JSON.parse(localStorage.getItem(LOCAL_KEY) || 'null');
+    if (data) applyAll(data);
+  } catch (e) {
+    /* 손상된 저장은 무시하고 신규 시작 */
+  }
+}
+
+/** 즉시 저장 (server → PUT / local → localStorage) */
 async function save() {
-  if (mode !== 'server') return;
+  if (resetting) return;
+  if (mode === 'local') {
+    saveLocal();
+    return;
+  }
   try {
     await fetch(`${ENDPOINT}?userId=${USER_ID}`, {
       method: 'PUT',
@@ -50,17 +91,18 @@ async function save() {
 }
 
 function scheduleSave() {
-  if (mode !== 'server' || saveTimer) return;
+  if (resetting || saveTimer) return;
   saveTimer = setTimeout(() => {
     saveTimer = null;
     save();
   }, DEBOUNCE_MS);
 }
 
-/** 탭 종료 시 마지막 저장 (sendBeacon 은 비동기 unload 에도 안전, POST 사용) */
+/** 탭 종료 시 마지막 저장 */
 function saveOnExit() {
-  if (mode !== 'server') {
-    economyData.markSeen(); // local 모드는 localStorage 에 접속 시각 기록
+  if (resetting) return;
+  if (mode === 'local') {
+    saveLocal();
     return;
   }
   try {
@@ -106,25 +148,45 @@ export const saveManager = {
       if (res.status === 204) {
         mode = 'server'; // 신규 플레이어 — 복원할 데이터 없음
       } else if (res.ok) {
-        const data = await res.json();
-        evolutionData.loadSaveState(data.evolution); // 스탯 배율 먼저 복원 (playerData 가 참조)
-        careData.loadSaveState(data.care); // 훈련 보너스도 먼저 복원
-        rebirthData.loadSaveState(data.rebirth); // 전생 배율도 먼저 복원
-        expeditionData.loadSaveState(data.expedition); // 제단 배율도 먼저 복원
-        retentionData.loadSaveState(data.retention);
-        playerData.loadSaveState(data.player);
-        stageData.loadSaveState(data.stage);
-        economyData.loadSaveState(data.economy);
-        economyData.computeOffline(data.lastSeen); // 서버 기준 오프라인 보상
+        applyAll(await res.json()); // 서버 저장 복원
         mode = 'server';
       } else {
         mode = 'local';
       }
     } catch (e) {
-      mode = 'local'; // 백엔드 미기동 — localStorage 폴백 (economyData 가 자체 로드)
+      mode = 'local'; // 백엔드 미기동 — localStorage 전체 저장 폴백
     }
+    if (mode === 'local') loadLocal();
     startAutoSave();
     return mode;
+  },
+
+  /**
+   * 저장 데이터 전체 초기화 (설정 메뉴). 로컬 저장 키를 지우고,
+   * 서버 모드면 서버 저장도 비운 뒤 페이지를 새로고침해 기본값으로 재시작한다.
+   */
+  async resetAll() {
+    resetting = true;
+    if (saveTimer) {
+      clearTimeout(saveTimer);
+      saveTimer = null;
+    }
+    if (mode === 'server') {
+      try {
+        await fetch(`${ENDPOINT}?userId=${USER_ID}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        });
+      } catch (e) {
+        /* 무시 */
+      }
+    }
+    if (typeof localStorage !== 'undefined') {
+      // 게임 진행 데이터만 삭제 (사운드 설정 yokai.audio.v1 은 유지)
+      [LOCAL_KEY, 'gunungrok.economy.v1', 'yokai.retention.v1'].forEach((k) => localStorage.removeItem(k));
+    }
+    if (typeof window !== 'undefined') window.location.reload();
   },
 
   /** 수동 저장 트리거 (필요 시) */
