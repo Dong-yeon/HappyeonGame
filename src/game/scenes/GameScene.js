@@ -159,7 +159,7 @@ export default class GameScene extends Phaser.Scene {
     });
 
     // ===== 적/보스 처치 처리 =====
-    this.events.on('enemy-killed', ({ exp, x, y, isBoss, color }) => {
+    this.events.on('enemy-killed', ({ exp, x, y, isBoss, isEscort, color }) => {
       this.playerData.addKill();
       const leveledUp = this.playerData.gainExp(exp);
       this.showFloatingText(x, y - 30, `+${exp} EXP`, '#ffd54f');
@@ -202,8 +202,13 @@ export default class GameScene extends Phaser.Scene {
       if (isBoss) {
         this.onBossDefeated();
       } else {
+        // 토벌대 호위 병사 처치: 소량 추가 재료 (진행 집계는 registerKill 이 보스중엔 무시)
+        if (isEscort) {
+          economyData.gainMaterials(CHAPTER.RAID_ESCORT_MAT);
+          this.showFloatingText(x, y - 66, `+${CHAPTER.RAID_ESCORT_MAT} 재료`, '#c8b6ff');
+        }
         const r = this.stageData.registerKill();
-        if (r === 'boss') this.spawnBoss();
+        if (r === 'boss') this.spawnRaid();
         else if (r === 'advance') this.applyStageBackground();
       }
     });
@@ -336,13 +341,15 @@ export default class GameScene extends Phaser.Scene {
     );
   }
 
-  /** 보스 등장 — 바닥 중앙에 생성 (스테이지 배율 + 보스 배율) */
-  spawnBoss() {
+  /** 챕터 관문 = 인간 토벌대 습격 — 대장 장수 + 호위 병사 웨이브 */
+  spawnRaid() {
     const cfg = this.stageData.getConfig();
     const s = this.stageData.getState();
+    const groundTop = PLATFORMS[0].y - PLATFORMS[0].height / 2;
+
+    // 대장 장수 (기존 챕터 보스 = 필수 처치 대상)
     const w = BOSS.WIDTH * CHAPTER.BOSS_SIZE_MUL;
     const h = BOSS.HEIGHT * CHAPTER.BOSS_SIZE_MUL;
-    const groundTop = PLATFORMS[0].y - PLATFORMS[0].height / 2;
     this.enemies.add(
       new Enemy(this, GAME_WIDTH / 2, groundTop - h / 2, {
         width: w,
@@ -355,7 +362,32 @@ export default class GameScene extends Phaser.Scene {
         isBoss: true,
       }),
     );
-    this.showBanner(`⚔ 챕터 ${s.chapter} 보스 등장! ⚔\n관문을 돌파하라`, '#ff6b6b');
+
+    // 호위 병사 (챕터에 비례해 증가) — 정예라 체력 가중, 붉은 깃발 표식
+    const escortCount = Math.min(
+      CHAPTER.RAID_ESCORT_MAX,
+      Math.round(CHAPTER.RAID_ESCORT_BASE + (s.chapter - 1) * CHAPTER.RAID_ESCORT_PER_CHAPTER),
+    );
+    for (let i = 0; i < escortCount; i += 1) {
+      const p = PLATFORMS[Phaser.Math.Between(0, PLATFORMS.length - 1)];
+      const margin = ENEMY.WIDTH;
+      const ex = Phaser.Math.Between(p.x - p.width / 2 + margin, p.x + p.width / 2 - margin);
+      const ey = p.y - p.height / 2 - ENEMY.HEIGHT / 2;
+      this.enemies.add(
+        new Enemy(this, ex, ey, {
+          hp: Math.round(ENEMY.HP * cfg.enemyHpMul * CHAPTER.RAID_ESCORT_HP_MUL),
+          damage: Math.round(ENEMY.DAMAGE * cfg.enemyDmgMul),
+          isEscort: true,
+        }),
+      );
+    }
+
+    audio.sfx('raid');
+    this.cameras.main.shake(280, 0.006);
+    this.showBanner(
+      `⚔ 챕터 ${s.chapter} 인간 토벌대 습격! ⚔\n대장을 처치해 관문을 돌파하라 (호위 ${escortCount})`,
+      '#ff6b6b',
+    );
   }
 
   /** 처치 시 골드량 계산 (스테이지 스케일 × 업그레이드 배율) */
@@ -373,18 +405,27 @@ export default class GameScene extends Phaser.Scene {
     return Math.max(1, Math.round(isBoss ? base * BOSS.ESSENCE_MUL : base));
   }
 
-  /** 보스 처치 → 스테이지 클리어 → 다음 스테이지 */
+  /** 토벌대 대장 처치 → 관문 돌파 → 다음 챕터. 남은 호위 병사는 퇴각(제거). */
   onBossDefeated() {
     const cleared = this.stageData.getState().chapter; // 방금 깬 챕터
+
+    // 남은 토벌대 호위 병사 퇴각 (파편 이펙트 후 제거)
+    this.enemies.getChildren().slice().forEach((e) => {
+      if (e.active && e.isEscort) {
+        this.deathBurst(e.x, e.y, e.baseColor ?? 0xffffff, false);
+        e.destroy();
+      }
+    });
+
     this.stageData.clearStage();
     const s = this.stageData.getState();
     this.applyStageBackground();
 
-    // 챕터 클리어 재료 보상
+    // 토벌대 격파 재료 보상
     const mats = CHAPTER.MATERIAL_BASE + cleared * CHAPTER.MATERIAL_PER_CHAPTER;
     economyData.gainMaterials(mats);
     this.showFloatingText(this.player.x, this.player.y - 90, `+${mats} 재료`, '#c8b6ff');
-    this.showBanner(`✦ 챕터 ${cleared} 클리어! ✦\n▶ 챕터 ${s.chapter} 진입 (+${mats} 재료)`, '#8ce99a');
+    this.showBanner(`✦ 챕터 ${cleared} 토벌대 격파! ✦\n▶ 챕터 ${s.chapter} 진입 (+${mats} 재료)`, '#8ce99a');
     audio.sfx('clear');
   }
 

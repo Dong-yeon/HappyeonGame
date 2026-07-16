@@ -67,11 +67,17 @@ export const CODEX = {
 };
 
 export const CHAPTER = {
-  SIZE: 10, // 챕터당 스테이지 수 (마지막 스테이지에 챕터 보스)
-  BOSS_HP_MUL: 3, // 챕터 보스 = 일반 보스 대비 체력 배율
+  SIZE: 10, // 챕터당 스테이지 수 (마지막 스테이지에 챕터 보스 = 인간 토벌대)
+  BOSS_HP_MUL: 3, // 챕터 보스(토벌대 대장) = 일반 보스 대비 체력 배율
   BOSS_SIZE_MUL: 1.4, // 챕터 보스 크기 배율
-  MATERIAL_BASE: 5, // 챕터 보스 처치 재료 보상 기본
+  MATERIAL_BASE: 5, // 챕터 토벌대 격파 재료 보상 기본
   MATERIAL_PER_CHAPTER: 3, // 챕터당 추가 재료
+  // ===== 인간 토벌대(관문) — 대장 장수 + 호위 병사 웨이브 =====
+  RAID_ESCORT_BASE: 2, // 호위 병사 기본 수
+  RAID_ESCORT_PER_CHAPTER: 0.5, // 챕터당 호위 증가 (2챕터마다 +1)
+  RAID_ESCORT_MAX: 6, // 호위 병사 최대 수
+  RAID_ESCORT_HP_MUL: 1.3, // 호위 병사 체력 배율 (일반 적 대비 — 정예)
+  RAID_ESCORT_MAT: 1, // 호위 병사 1명 격파 시 추가 재료
 };
 
 export const EXPEDITION = {

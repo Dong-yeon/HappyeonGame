@@ -25,6 +25,7 @@ export default class Enemy extends Phaser.GameObjects.Rectangle {
     this.expReward = opts.expReward ?? ENEMY.EXP_REWARD;
     this.moveSpeed = opts.moveSpeed ?? ENEMY.MOVE_SPEED;
     this.isBoss = opts.isBoss ?? false;
+    this.isEscort = opts.isEscort ?? false; // 토벌대 호위 병사
     this.dir = Math.random() < 0.5 ? -1 : 1; // 초기 배회 방향
 
     // ===== 인간 병사/장수 도트 스프라이트 (사각형 몸은 히트박스로만 사용, 숨김) =====
@@ -36,6 +37,12 @@ export default class Enemy extends Phaser.GameObjects.Rectangle {
     // 머리 위 HP바
     const barColor = this.isBoss ? 0xff5252 : 0x2ecc71;
     this.hpBar = scene.add.rectangle(x, y - height / 2 - 12, width, this.isBoss ? 6 : 4, barColor).setDepth(4);
+
+    // 토벌대 호위 병사: 붉은 깃발 표식 (일반 병사와 구분)
+    if (this.isEscort) {
+      this.flag = scene.add.rectangle(x, y - height / 2 - 22, 8, 7, 0xe03131).setDepth(4);
+      this.flagPole = scene.add.rectangle(x - 5, y - height / 2 - 22, 2, 12, 0x5a4a3a).setDepth(4);
+    }
   }
 
   update() {
@@ -49,6 +56,10 @@ export default class Enemy extends Phaser.GameObjects.Rectangle {
     this.sprite.setFlipX(this.dir > 0); // 창이 진행 방향을 향하도록
     this.hpBar.setPosition(this.x, this.y - this.height / 2 - 12);
     this.hpBar.width = this.width * (this.hp / this.maxHp);
+    if (this.flag) {
+      this.flagPole.setPosition(this.x - 5, this.y - this.height / 2 - 22);
+      this.flag.setPosition(this.x, this.y - this.height / 2 - 24);
+    }
   }
 
   takeDamage(amount) {
@@ -73,13 +84,14 @@ export default class Enemy extends Phaser.GameObjects.Rectangle {
       x: this.x,
       y: this.y,
       isBoss: this.isBoss,
+      isEscort: this.isEscort,
       color: this.baseColor,
     });
     this.destroy();
   }
 
   destroy(fromScene) {
-    [this.hpBar, this.sprite].forEach((o) => {
+    [this.hpBar, this.sprite, this.flag, this.flagPole].forEach((o) => {
       if (o && o.active) o.destroy();
     });
     super.destroy(fromScene);

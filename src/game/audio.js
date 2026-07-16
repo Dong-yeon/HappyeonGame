@@ -159,6 +159,13 @@ const RECIPES = {
   hatch() {
     [440, 587, 784].forEach((f, i) => tone({ freq: f, dur: 0.12, type: 'sine', gain: 0.16, when: i * 0.1 }));
   },
+  // 인간 토벌대 습격 — 경보/전투 나팔 (저역 뿔피리 2연타)
+  raid() {
+    tone({ freq: 220, dur: 0.45, type: 'sawtooth', gain: 0.16, slideTo: 180 });
+    tone({ freq: 110, dur: 0.5, type: 'square', gain: 0.1, slideTo: 90 });
+    tone({ freq: 247, dur: 0.5, type: 'sawtooth', gain: 0.15, slideTo: 200, when: 0.28 });
+    noise({ dur: 0.3, gain: 0.06, freq: 500, when: 0.02 });
+  },
   // 보스 처치 — 저역 폭발(붐)
   boss() {
     tone({ freq: 120, dur: 0.5, type: 'sine', gain: 0.24, slideTo: 40 });

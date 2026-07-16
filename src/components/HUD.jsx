@@ -36,7 +36,7 @@ export default function HUD() {
         </span>
         <span className="hud-stage">
           챕터 {stage.chapter} · {stage.stageInChapter}/{CHAPTER.SIZE} · {stage.stageName}
-          {stage.isChapterBossStage && <span className="hud-gate"> · 보스 관문</span>}
+          {stage.isChapterBossStage && <span className="hud-gate"> · 토벌대 관문</span>}
         </span>
       </div>
       <span className="hud-level">Lv.{stats.level}</span>
@@ -59,7 +59,7 @@ export default function HUD() {
             style={{ width: `${stagePercent}%` }}
           />
           <span className="bar-label">
-            {stage.bossActive ? '⚔ 챕터 보스 처치!' : `돌파 ${stage.kills} / ${stage.killsToClear}`}
+            {stage.bossActive ? '⚔ 토벌대 대장 처치!' : `돌파 ${stage.kills} / ${stage.killsToClear}`}
           </span>
         </div>
         <div className="bar">
