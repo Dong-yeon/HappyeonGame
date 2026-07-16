@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { economyData } from '../data/economyData.js';
+import { fmt } from '../format.js';
 
 /** 오프라인 보상 모달 — 재접속 시 비운 시간만큼 쌓인 골드를 보여주고 수령 */
 export default function OfflineReward() {
@@ -18,7 +19,7 @@ export default function OfflineReward() {
         <div className="offline-title">⚔ 원정에서 돌아왔다</div>
         <div className="offline-sub">자리를 비운 {formatDuration(reward.seconds)} 동안</div>
         <div className="offline-gold">
-          <span className="coin">◆</span> +{reward.gold.toLocaleString()} G
+          <span className="coin">◆</span> +{fmt(reward.gold)} G
         </div>
         <button className="offline-claim" onClick={() => economyData.claimOfflineReward()}>
           보상 수령

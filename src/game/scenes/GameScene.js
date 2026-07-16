@@ -24,6 +24,7 @@ import { expeditionData } from '../../data/expeditionData.js';
 import { retentionData } from '../../data/retentionData.js';
 import { getYokaiTexture } from '../pixelArt.js';
 import { audio } from '../audio.js';
+import { fmt } from '../../format.js';
 
 /**
  * 메인 사냥터 씬 — 고정 크기 맵 (메이플스토리 일반 사냥터 방식) + 스테이지 진행 구조.
@@ -173,7 +174,7 @@ export default class GameScene extends Phaser.Scene {
     this.events.on('enemy-killed', ({ exp, x, y, isBoss, isEscort, isAmbush, color }) => {
       this.playerData.addKill();
       const leveledUp = this.playerData.gainExp(exp);
-      this.showFloatingText(x, y - 30, `+${exp} EXP`, '#ffd54f');
+      this.showFloatingText(x, y - 30, `+${fmt(exp)} EXP`, '#ffd54f');
 
       // 처치 이펙트 (juice): 파편 폭발 + 보스는 화면 흔들림
       this.deathBurst(x, y, color ?? 0xffffff, isBoss);
@@ -186,12 +187,12 @@ export default class GameScene extends Phaser.Scene {
       // 골드 드랍 (스테이지 스케일 × 업그레이드 배율 × 컨디션)
       const gold = Math.max(1, Math.round(this.rollGold(isBoss) * gainMul));
       economyData.gainGold(gold);
-      this.showFloatingText(x + 14, y - 30, `+${gold} G`, '#ffd166');
+      this.showFloatingText(x + 14, y - 30, `+${fmt(gold)} G`, '#ffd166');
 
       // 정기 획득 (인간 포식 → 진화 재화, 컨디션 반영)
       const essence = Math.max(1, Math.round(this.rollEssence(isBoss) * gainMul));
       evolutionData.gainEssence(essence);
-      this.showFloatingText(x - 14, y - 48, `+${essence} 정기`, '#8ce9ff');
+      this.showFloatingText(x - 14, y - 48, `+${fmt(essence)} 정기`, '#8ce9ff');
 
       // 리텐션(일일 미션·업적) 기록
       retentionData.recordKill();
@@ -488,8 +489,8 @@ export default class GameScene extends Phaser.Scene {
     economyData.gainGold(gold);
     this.nextAmbushAt = this.notoriety + AMBUSH.NOTORIETY_INTERVAL; // 다음 기습까지 한 간격
     audio.sfx('clear');
-    this.showFloatingText(this.player.x, this.player.y - 90, `+${mats} 재료 · +${essence} 정기 · +${gold} G`, '#ffd166');
-    this.showBanner(`✦ 토벌대 격퇴! ✦\n+${mats} 재료 · +${essence} 정기 · +${gold} G`, '#8ce99a');
+    this.showFloatingText(this.player.x, this.player.y - 90, `+${fmt(mats)} 재료 · +${fmt(essence)} 정기 · +${fmt(gold)} G`, '#ffd166');
+    this.showBanner(`✦ 토벌대 격퇴! ✦\n+${fmt(mats)} 재료 · +${fmt(essence)} 정기 · +${fmt(gold)} G`, '#8ce99a');
   }
 
   /** 기습 상태 초기화 (적 일괄 정리 이벤트에서 카운터가 어긋나지 않도록) */
@@ -535,8 +536,8 @@ export default class GameScene extends Phaser.Scene {
     // 토벌대 격파 재료 보상
     const mats = CHAPTER.MATERIAL_BASE + cleared * CHAPTER.MATERIAL_PER_CHAPTER;
     economyData.gainMaterials(mats);
-    this.showFloatingText(this.player.x, this.player.y - 90, `+${mats} 재료`, '#c8b6ff');
-    this.showBanner(`✦ 챕터 ${cleared} 토벌대 격파! ✦\n▶ 챕터 ${s.chapter} 진입 (+${mats} 재료)`, '#8ce99a');
+    this.showFloatingText(this.player.x, this.player.y - 90, `+${fmt(mats)} 재료`, '#c8b6ff');
+    this.showBanner(`✦ 챕터 ${cleared} 토벌대 격파! ✦\n▶ 챕터 ${s.chapter} 진입 (+${fmt(mats)} 재료)`, '#8ce99a');
     audio.sfx('clear');
   }
 
@@ -633,7 +634,7 @@ export default class GameScene extends Phaser.Scene {
   /** 떠오르며 사라지는 피해 숫자 */
   showDamage(x, y, amount, color = '#ffffff') {
     const t = this.add
-      .text(x + Phaser.Math.Between(-8, 8), y, `${amount}`, {
+      .text(x + Phaser.Math.Between(-8, 8), y, fmt(amount), {
         fontSize: '15px',
         fontStyle: 'bold',
         color,

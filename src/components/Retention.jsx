@@ -2,14 +2,15 @@ import { useEffect, useState } from 'react';
 import { retentionData } from '../data/retentionData.js';
 import { economyData } from '../data/economyData.js';
 import { evolutionData } from '../data/evolutionData.js';
+import { fmt } from '../format.js';
 
 /** 보상 객체 → 읽기 좋은 문자열 */
 function rewardText(r) {
   if (!r) return '';
   const parts = [];
-  if (r.gold) parts.push(`${r.gold.toLocaleString()} G`);
-  if (r.materials) parts.push(`재료 ${r.materials}`);
-  if (r.essence) parts.push(`정기 ${r.essence}`);
+  if (r.gold) parts.push(`${fmt(r.gold)} G`);
+  if (r.materials) parts.push(`재료 ${fmt(r.materials)}`);
+  if (r.essence) parts.push(`정기 ${fmt(r.essence)}`);
   return parts.join(' · ');
 }
 
@@ -66,7 +67,7 @@ export default function Retention() {
                       <div className="ret-bar-fill" style={{ width: `${(m.progress / m.goal) * 100}%` }} />
                     </div>
                     <span className="ret-row-prog">
-                      {m.progress} / {m.goal}
+                      {fmt(m.progress)} / {fmt(m.goal)}
                     </span>
                   </div>
                   <button
@@ -96,7 +97,7 @@ export default function Retention() {
                       <div className="ret-bar-fill" style={{ width: `${(a.current / a.goal) * 100}%` }} />
                     </div>
                     <span className="ret-row-prog">
-                      {a.current} / {a.goal}
+                      {fmt(a.current)} / {fmt(a.goal)}
                     </span>
                   </div>
                   <button

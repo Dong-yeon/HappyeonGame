@@ -5,6 +5,7 @@ import { evolutionData } from '../data/evolutionData.js';
 import { rebirthData } from '../data/rebirthData.js';
 import { economyData } from '../data/economyData.js';
 import { CHAPTER } from '../game/constants.js';
+import { fmt } from '../format.js';
 
 /** React 기반 HUD — 요괴 형태 / HP / 레벨 / 경험치 / 스테이지 진행 / 정기(진화) / 포식 수 */
 export default function HUD() {
@@ -44,13 +45,13 @@ export default function HUD() {
         <div className="bar">
           <div className="bar-fill hp" style={{ width: `${hpPercent}%` }} />
           <span className="bar-label">
-            HP {stats.hp} / {stats.maxHp}
+            HP {fmt(stats.hp)} / {fmt(stats.maxHp)}
           </span>
         </div>
         <div className="bar">
           <div className="bar-fill exp" style={{ width: `${expPercent}%` }} />
           <span className="bar-label">
-            EXP {stats.exp} / {stats.expToNext}
+            EXP {fmt(stats.exp)} / {fmt(stats.expToNext)}
           </span>
         </div>
         <div className="bar">
@@ -65,13 +66,13 @@ export default function HUD() {
         <div className="bar">
           <div className="bar-fill essence" style={{ width: `${essencePercent}%` }} />
           <span className="bar-label">
-            {evo.isFinal ? '승천 완료 · 최종 형태' : `정기 ${evo.essence} / ${evo.essenceToEvolve}`}
+            {evo.isFinal ? '승천 완료 · 최종 형태' : `정기 ${fmt(evo.essence)} / ${fmt(evo.essenceToEvolve)}`}
           </span>
         </div>
       </div>
       <div className="hud-right">
-        <span className="hud-mat">🪵 {materials.toLocaleString()}</span>
-        <span className="hud-kills">포식 {stats.kills}</span>
+        <span className="hud-mat">🪵 {fmt(materials)}</span>
+        <span className="hud-kills">포식 {fmt(stats.kills)}</span>
       </div>
     </div>
   );

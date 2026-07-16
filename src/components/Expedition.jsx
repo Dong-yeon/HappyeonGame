@@ -3,6 +3,7 @@ import { expeditionData } from '../data/expeditionData.js';
 import { retentionData } from '../data/retentionData.js';
 import { economyData } from '../data/economyData.js';
 import { FUSION } from '../game/constants.js';
+import { fmt } from '../format.js';
 
 /**
  * 원정 패널 — 비활성 요괴를 원정 보내 재료 수급 + 재료 제단(영구 강화).
@@ -38,7 +39,7 @@ export default function Expedition() {
   return (
     <div className="expedition">
       <button className="exped-toggle" onClick={() => setOpen((v) => !v)}>
-        🧭 원정 · 재료 {materials.toLocaleString()}
+        🧭 원정 · 재료 {fmt(materials)}
         <span className="exped-toggle-label">{open ? '▲' : '▼'}</span>
       </button>
 
@@ -55,7 +56,7 @@ export default function Expedition() {
               </span>
             </div>
             <button className="exped-btn altar" disabled={materials < altar.cost} onClick={() => expeditionData.upgradeAltar()}>
-              🪵 {altar.cost}
+              🪵 {fmt(altar.cost)}
             </button>
           </div>
           <div className="exped-altar">
@@ -68,14 +69,14 @@ export default function Expedition() {
               </span>
             </div>
             <button className="exped-btn altar" disabled={materials < skill.cost} onClick={() => expeditionData.upgradeSkill()}>
-              🪵 {skill.cost}
+              🪵 {fmt(skill.cost)}
             </button>
           </div>
           <div className="exped-altar">
             <div className="exped-item-info">
               <span className="exped-item-name">정기 촉진</span>
               <span className="exped-item-rate">
-                {boost.available ? <>재료 → 정기 <b>+{boost.amount}</b></> : '최종 형태 (진화 없음)'}
+                {boost.available ? <>재료 → 정기 <b>+{fmt(boost.amount)}</b></> : '최종 형태 (진화 없음)'}
               </span>
             </div>
             <button
