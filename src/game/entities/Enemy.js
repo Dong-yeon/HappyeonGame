@@ -26,11 +26,13 @@ export default class Enemy extends Phaser.GameObjects.Rectangle {
     this.moveSpeed = opts.moveSpeed ?? ENEMY.MOVE_SPEED;
     this.isBoss = opts.isBoss ?? false;
     this.isEscort = opts.isEscort ?? false; // 토벌대 호위 병사
+    this.isCaptain = opts.captain ?? false; // 기습 대장(미니) — 장수 외형이나 관문 보스는 아님
+    this.isAmbush = opts.isAmbush ?? false; // 비정기 기습 이벤트 소속
     this.dir = Math.random() < 0.5 ? -1 : 1; // 초기 배회 방향
 
     // ===== 인간 병사/장수 도트 스프라이트 (사각형 몸은 히트박스로만 사용, 숨김) =====
     this.setVisible(false);
-    const texKey = this.isBoss ? getGeneralTexture(scene) : getSoldierTexture(scene);
+    const texKey = this.isBoss || this.isCaptain ? getGeneralTexture(scene) : getSoldierTexture(scene);
     this.sprite = scene.add.sprite(x, y, texKey).setDepth(2);
     this.sprite.setDisplaySize(width * 1.3, height * 1.25);
 
@@ -85,6 +87,7 @@ export default class Enemy extends Phaser.GameObjects.Rectangle {
       y: this.y,
       isBoss: this.isBoss,
       isEscort: this.isEscort,
+      isAmbush: this.isAmbush,
       color: this.baseColor,
     });
     this.destroy();

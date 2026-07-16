@@ -11,6 +11,7 @@ import {
   GOLD,
   ESSENCE,
   CHAPTER,
+  AMBUSH,
 } from '../constants.js';
 import { playerData } from '../../data/playerData.js';
 import { stageData } from '../../data/stageData.js';
@@ -73,6 +74,12 @@ export default class GameScene extends Phaser.Scene {
     this.lastSkillTime = 0;
     skillData.setSkill(evolutionData.getSkill());
 
+    // ===== 비정기 토벌대 기습 (악명도 기반) =====
+    this.notoriety = 0; // 누적 처치 = 악명도
+    this.nextAmbushAt = AMBUSH.NOTORIETY_FIRST;
+    this.ambushActive = false;
+    this.ambushRemaining = 0;
+
     // 진화/부화 시: 요괴 색 갱신 + 스킬 교체 + 연출 (Player AI 로직은 건드리지 않음)
     let lastFormId = evolutionData.getState().formId;
     let lastTier = evolutionData.getState().tier;
@@ -86,6 +93,7 @@ export default class GameScene extends Phaser.Scene {
         lastFormId = evo.formId;
         lastTier = evo.tier;
         this.enemies.getChildren().slice().forEach((e) => e.destroy());
+        this.resetAmbush();
         this.applyStageBackground();
         this.showBanner(`🥚 부화! 🥚\n${evo.speciesName}`, '#ffd782');
         audio.sfx('hatch');
@@ -112,6 +120,7 @@ export default class GameScene extends Phaser.Scene {
       if (rb.count > lastRebirth) {
         lastRebirth = rb.count;
         this.enemies.getChildren().slice().forEach((e) => e.destroy());
+        this.resetAmbush();
         this.applyStageBackground();
         this.showBanner(`🔄 전생! 🔄\n환생 ${rb.count}회 · 영구 배율 ×${rb.multiplier}`, '#c0eb75');
         audio.sfx('rebirth');
@@ -159,7 +168,7 @@ export default class GameScene extends Phaser.Scene {
     });
 
     // ===== 적/보스 처치 처리 =====
-    this.events.on('enemy-killed', ({ exp, x, y, isBoss, isEscort, color }) => {
+    this.events.on('enemy-killed', ({ exp, x, y, isBoss, isEscort, isAmbush, color }) => {
       this.playerData.addKill();
       const leveledUp = this.playerData.gainExp(exp);
       this.showFloatingText(x, y - 30, `+${exp} EXP`, '#ffd54f');
@@ -207,6 +216,15 @@ export default class GameScene extends Phaser.Scene {
           economyData.gainMaterials(CHAPTER.RAID_ESCORT_MAT);
           this.showFloatingText(x, y - 66, `+${CHAPTER.RAID_ESCORT_MAT} 재료`, '#c8b6ff');
         }
+        // 기습 이벤트 유닛 격파 집계 → 전멸 시 격퇴 보상
+        if (isAmbush && this.ambushActive) {
+          this.ambushRemaining -= 1;
+          if (this.ambushRemaining <= 0) this.completeAmbush();
+        }
+        // 악명도 누적 → 임계 도달 시 기습 발생
+        this.notoriety += 1;
+        this.maybeTriggerAmbush();
+
         const r = this.stageData.registerKill();
         if (r === 'boss') this.spawnRaid();
         else if (r === 'advance') this.applyStageBackground();
@@ -219,6 +237,11 @@ export default class GameScene extends Phaser.Scene {
 
     // 리텐션 최고기록 초기 동기화 (불러온 저장 데이터 반영)
     this.syncRetention();
+
+    // 개발 모드 전용 디버그 핸들 (프로덕션 빌드에서는 제거됨)
+    if (import.meta.env && import.meta.env.DEV && typeof window !== 'undefined') {
+      window.__game = this;
+    }
   }
 
   update(time) {
@@ -390,6 +413,91 @@ export default class GameScene extends Phaser.Scene {
     );
   }
 
+  /** 악명도 임계 도달 시 비정기 기습 발생 (관문/보스와 겹치지 않음) */
+  maybeTriggerAmbush() {
+    if (this.ambushActive) return;
+    const s = this.stageData.getState();
+    if (s.bossActive || s.isChapterBossStage) return;
+    if (this.notoriety < this.nextAmbushAt) return;
+    this.spawnAmbush();
+  }
+
+  /** 비정기 토벌대 기습 — 기습 대장(미니) + 정예 병사 웨이브 (진행 무관 보너스) */
+  spawnAmbush() {
+    const cfg = this.stageData.getConfig();
+    const s = this.stageData.getState();
+    const groundTop = PLATFORMS[0].y - PLATFORMS[0].height / 2;
+
+    // 기습 대장 (미니 — 장수 외형, 관문 보스보다 약함, isBoss 아님)
+    const cw = BOSS.WIDTH * AMBUSH.CAPTAIN_SIZE_MUL;
+    const ch = BOSS.HEIGHT * AMBUSH.CAPTAIN_SIZE_MUL;
+    this.enemies.add(
+      new Enemy(this, GAME_WIDTH / 2, groundTop - ch / 2, {
+        width: cw,
+        height: ch,
+        color: BOSS.COLOR,
+        moveSpeed: BOSS.MOVE_SPEED,
+        hp: Math.round(ENEMY.HP * cfg.enemyHpMul * AMBUSH.CAPTAIN_HP_MUL),
+        damage: Math.round(ENEMY.DAMAGE * cfg.enemyDmgMul * BOSS.DAMAGE_MUL),
+        expReward: ENEMY.EXP_REWARD * 3,
+        captain: true,
+        isAmbush: true,
+      }),
+    );
+
+    const count = Math.min(
+      AMBUSH.ESCORT_MAX,
+      Math.round(AMBUSH.ESCORT_BASE + (s.chapter - 1) * AMBUSH.ESCORT_PER_CHAPTER),
+    );
+    for (let i = 0; i < count; i += 1) {
+      const p = PLATFORMS[Phaser.Math.Between(0, PLATFORMS.length - 1)];
+      const margin = ENEMY.WIDTH;
+      const ex = Phaser.Math.Between(p.x - p.width / 2 + margin, p.x + p.width / 2 - margin);
+      const ey = p.y - p.height / 2 - ENEMY.HEIGHT / 2;
+      this.enemies.add(
+        new Enemy(this, ex, ey, {
+          hp: Math.round(ENEMY.HP * cfg.enemyHpMul * AMBUSH.ESCORT_HP_MUL),
+          damage: Math.round(ENEMY.DAMAGE * cfg.enemyDmgMul),
+          isEscort: true,
+          isAmbush: true,
+        }),
+      );
+    }
+
+    this.ambushActive = true;
+    this.ambushRemaining = count + 1; // 병사 + 기습 대장
+    this.nextAmbushAt = this.notoriety + AMBUSH.NOTORIETY_INTERVAL; // 임시(완료 시 재설정)
+    audio.sfx('raid');
+    this.cameras.main.shake(300, 0.007);
+    this.showBanner(`🚨 인간 토벌대 기습! 🚨\n격퇴하면 큰 보상 (적 ${this.ambushRemaining})`, '#ffa94d');
+  }
+
+  /** 기습 전멸 → 격퇴 보상 (재료·정기·골드) */
+  completeAmbush() {
+    if (!this.ambushActive) return;
+    this.ambushActive = false;
+    this.ambushRemaining = 0;
+    const chapter = this.stageData.getState().chapter;
+    const mats = AMBUSH.REWARD_MAT_BASE + chapter * AMBUSH.REWARD_MAT_PER_CH;
+    const essence = AMBUSH.REWARD_ESSENCE_BASE + chapter * AMBUSH.REWARD_ESSENCE_PER_CH;
+    const gold = AMBUSH.REWARD_GOLD_BASE + chapter * AMBUSH.REWARD_GOLD_PER_CH;
+    economyData.gainMaterials(mats);
+    evolutionData.gainEssence(essence);
+    economyData.gainGold(gold);
+    this.nextAmbushAt = this.notoriety + AMBUSH.NOTORIETY_INTERVAL; // 다음 기습까지 한 간격
+    audio.sfx('clear');
+    this.showFloatingText(this.player.x, this.player.y - 90, `+${mats} 재료 · +${essence} 정기 · +${gold} G`, '#ffd166');
+    this.showBanner(`✦ 토벌대 격퇴! ✦\n+${mats} 재료 · +${essence} 정기 · +${gold} G`, '#8ce99a');
+  }
+
+  /** 기습 상태 초기화 (적 일괄 정리 이벤트에서 카운터가 어긋나지 않도록) */
+  resetAmbush() {
+    if (!this.ambushActive) return;
+    this.ambushActive = false;
+    this.ambushRemaining = 0;
+    this.nextAmbushAt = this.notoriety + AMBUSH.NOTORIETY_INTERVAL;
+  }
+
   /** 처치 시 골드량 계산 (스테이지 스케일 × 업그레이드 배율) */
   rollGold(isBoss) {
     const idx = this.stageData.getState().stageIndex;
@@ -416,6 +524,7 @@ export default class GameScene extends Phaser.Scene {
         e.destroy();
       }
     });
+    this.resetAmbush(); // 관문 처리로 기습 유닛이 함께 정리될 수 있으므로 카운터 초기화
 
     this.stageData.clearStage();
     const s = this.stageData.getState();

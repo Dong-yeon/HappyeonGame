@@ -80,6 +80,25 @@ export const CHAPTER = {
   RAID_ESCORT_MAT: 1, // 호위 병사 1명 격파 시 추가 재료
 };
 
+// ===== 비정기 토벌대 기습 이벤트 (악명도 기반, 진행과 무관한 보너스 웨이브) =====
+export const AMBUSH = {
+  NOTORIETY_FIRST: 25, // 첫 기습까지 누적 처치 수
+  NOTORIETY_INTERVAL: 45, // 이후 기습 간격(처치 수)
+  ESCORT_BASE: 3, // 기습 병사 기본 수
+  ESCORT_PER_CHAPTER: 0.5, // 챕터당 증가
+  ESCORT_MAX: 7, // 기습 병사 최대 수
+  ESCORT_HP_MUL: 1.25, // 기습 병사 체력 배율
+  CAPTAIN_HP_MUL: 3, // 기습 대장(미니) 체력 배율 (일반 적 대비 — 관문 대장보다 약함)
+  CAPTAIN_SIZE_MUL: 1.15, // 기습 대장 크기 배율
+  // 격퇴(전멸) 완료 보상
+  REWARD_MAT_BASE: 8,
+  REWARD_MAT_PER_CH: 2,
+  REWARD_ESSENCE_BASE: 40,
+  REWARD_ESSENCE_PER_CH: 15,
+  REWARD_GOLD_BASE: 150,
+  REWARD_GOLD_PER_CH: 60,
+};
+
 export const EXPEDITION = {
   RATE_PER_FORM: 0.3, // 원정 재료/분 (해당 종족의 발견 형태 1종당)
   ALTAR_BASE_COST: 10, // 재료 제단: 능력 강화 기본 비용
