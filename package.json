@@ -8,14 +8,21 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "build:itch": "vite build && cd dist && zip -r -FS ../yokairok-web.zip . && cd .. && echo '\\n✅ itch.io 업로드용 dist/../yokairok-web.zip 생성 완료'"
+    "build:itch": "vite build && cd dist && zip -r -FS ../yokairok-web.zip . && cd .. && echo '\\n✅ itch.io 업로드용 dist/../yokairok-web.zip 생성 완료'",
+    "cap:sync": "vite build && cap sync",
+    "cap:android": "npm run cap:sync && cap open android",
+    "cap:ios": "npm run cap:sync && cap open ios"
   },
   "dependencies": {
+    "@capacitor/core": "^6.2.1",
     "phaser": "^3.80.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/cli": "^6.2.1",
+    "@capacitor/ios": "^6.2.1",
     "@vitejs/plugin-react": "^4.3.1",
     "vite": "^5.4.0"
   }

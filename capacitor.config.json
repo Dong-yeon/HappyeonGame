@@ -1,0 +1,13 @@
+{
+  "appId": "com.yokairok.app",
+  "appName": "요괴록",
+  "webDir": "dist",
+  "backgroundColor": "#0b0806",
+  "android": {
+    "backgroundColor": "#0b0806"
+  },
+  "ios": {
+    "backgroundColor": "#0b0806",
+    "contentInset": "always"
+  }
+}

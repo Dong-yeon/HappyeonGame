@@ -9,7 +9,7 @@
 - **Frontend**: React + Phaser.js (Arcade Physics), Vite
 - **Backend**: Spring Boot + SQLite (선택 — 없으면 브라우저 로컬 저장으로 단독 동작)
 - **웹 배포**: itch.io (정적 HTML5 빌드)
-- **모바일 배포**: Capacitor.js (예정)
+- **모바일 배포**: Capacitor.js (iOS/Android — 반응형/터치 대응)
 
 ## 실행 방법
 
@@ -31,6 +31,27 @@ npm run build:itch   # 빌드 + itch.io 업로드용 yokairok-web.zip 생성
 - 백엔드 미연동 환경(itch)에서는 **전체 진행이 브라우저 localStorage 에 저장**되어 새로고침에도 유지
 - itch.io: 새 프로젝트 → **Kind of project: HTML** → `yokairok-web.zip` 업로드 → *This file will be played in the browser* 체크 → 뷰포트 1280×720, **Fullscreen 허용** 권장
 - 도트·사운드·아이콘 모두 코드/데이터 URI 로 자체 생성 → 외부 에셋·CDN 의존 없음
+
+## 모바일 앱 (Capacitor)
+
+웹 빌드를 그대로 감싸 iOS/Android 네이티브 앱으로 배포한다.
+
+```bash
+# 1) 네이티브 플랫폼 생성 (로컬 1회 — Android Studio / Xcode 필요)
+npx cap add android
+npx cap add ios
+
+# 2) 빌드 → 네이티브 동기화 → IDE 열기
+npm run cap:android   # = vite build + cap sync + cap open android
+npm run cap:ios
+```
+
+- `capacitor.config.json`: appId `com.yokairok.app`, appName `요괴록`, webDir `dist`
+- **반응형/터치 대응**: 1280×720 고정 디자인을 화면 크기에 맞춰 통째로 `transform: scale()` (레터박스) → 폰·태블릿 어디서든 UI 겹침 없이 축소. 절대배치 좌표계 유지
+- **세로 모드**: 회전 안내 오버레이 표시("가로로 돌려서 플레이하세요"). 앱 매니페스트에서 landscape 고정 권장
+- 터치: 확대/당겨서새로고침/텍스트선택/탭하이라이트 억제, `viewport-fit=cover` + safe-area 대응
+- 저장: 네이티브에서도 `/api` 백엔드가 없으면 **localStorage 전체 저장**으로 단독 동작
+- `android/`·`ios/` 네이티브 폴더는 `.gitignore` 처리 (로컬에서 SDK 로 생성)
 
 ## 컨셉
 
