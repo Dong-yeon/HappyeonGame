@@ -376,10 +376,10 @@ export default class GameScene extends Phaser.Scene {
   createPlayerDecor() {
     const evo = evolutionData.getState();
     this.playerSprite = this.add
-      .sprite(this.player.x, this.player.y, getYokaiTexture(this, evo.species, evo.color))
+      .sprite(this.player.x, this.player.y, getYokaiTexture(this, evo.species, evo.tier, evo.color))
       .setDepth(3);
-    this.playerSprite.setDisplaySize(48, 58);
-    this._lastYokaiKey = `${evo.species}_${evo.color}`;
+    this._applyYokaiSize(evo.tier);
+    this._lastYokaiKey = `${evo.species}_${evo.tier}_${evo.color}`;
     // 사각형 몸/방향 마커 숨김 (도트 스프라이트로 대체)
     this.player.setVisible(false);
     if (this.player.facingMarker) this.player.facingMarker.setVisible(false);
@@ -389,15 +389,21 @@ export default class GameScene extends Phaser.Scene {
     if (!this.playerSprite) return;
     const p = this.player;
     const evo = evolutionData.getState();
-    const key = `${evo.species}_${evo.color}`;
+    const key = `${evo.species}_${evo.tier}_${evo.color}`;
     if (key !== this._lastYokaiKey) {
-      this.playerSprite.setTexture(getYokaiTexture(this, evo.species, evo.color));
-      this.playerSprite.setDisplaySize(48, 58);
+      this.playerSprite.setTexture(getYokaiTexture(this, evo.species, evo.tier, evo.color));
+      this._applyYokaiSize(evo.tier);
       this._lastYokaiKey = key;
     }
     this.playerSprite.setPosition(p.x, p.y);
     this.playerSprite.setFlipX(p.facing < 0);
     this.playerSprite.setAlpha(p.alpha); // 무적 깜빡임 동기화
+  }
+
+  /** 형태(tier)별 표시 크기 — 새끼는 작게, 최종체는 크게 (성장감) */
+  _applyYokaiSize(tier) {
+    const size = tier >= 3 ? [64, 74] : tier === 2 ? [48, 58] : [40, 46];
+    this.playerSprite.setDisplaySize(size[0], size[1]);
   }
 
   /** 배경 야경: 하늘 그라데이션 + 달(글로우) + 별 + 산 실루엣 */
