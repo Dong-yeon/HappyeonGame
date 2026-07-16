@@ -10,6 +10,8 @@ export function createGameConfig(parent) {
     width: GAME_WIDTH,
     height: GAME_HEIGHT,
     backgroundColor: '#2b3a55', // 밤하늘 느낌의 남색
+    pixelArt: true, // 도트 스타일: 텍스처 확대 시 최근접 보간(선명한 픽셀)
+    roundPixels: true,
     physics: {
       default: 'arcade',
       arcade: {

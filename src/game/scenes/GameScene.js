@@ -20,6 +20,7 @@ import { careData } from '../../data/careData.js';
 import { rebirthData } from '../../data/rebirthData.js';
 import { skillData } from '../../data/skillData.js';
 import { expeditionData } from '../../data/expeditionData.js';
+import { getYokaiTexture } from '../pixelArt.js';
 
 /**
  * 메인 사냥터 씬 — 고정 크기 맵 (메이플스토리 일반 사냥터 방식) + 스테이지 진행 구조.
@@ -371,41 +372,29 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
-  /** 요괴(플레이어) 모양: 뿔 + 눈 (Player.js 는 건드리지 않고 씬이 따라다니게) */
+  /** 요괴(플레이어) 도트 스프라이트 — Player.js 는 건드리지 않고 씬이 따라다니게 */
   createPlayerDecor() {
-    const d = -6; // 뿔 스파이크 shape
-    this.pDecor = {
-      hornL: this.add.triangle(0, 0, -2, 0, 8, 0, 3, -16, 0x000000).setDepth(2),
-      hornR: this.add.triangle(0, 0, -8, 0, 2, 0, -3, -16, 0x000000).setDepth(2),
-      eyeL: this.add.circle(0, 0, 4.5, 0xffffff).setDepth(3),
-      eyeR: this.add.circle(0, 0, 4.5, 0xffffff).setDepth(3),
-      pupilL: this.add.circle(0, 0, 2.2, 0x141414).setDepth(4),
-      pupilR: this.add.circle(0, 0, 2.2, 0x141414).setDepth(4),
-    };
-    this._d = d;
+    const color = evolutionData.getColor();
+    this.playerSprite = this.add.sprite(this.player.x, this.player.y, getYokaiTexture(this, color)).setDepth(3);
+    this.playerSprite.setDisplaySize(48, 58);
+    this._lastYokaiColor = color;
+    // 사각형 몸/방향 마커 숨김 (도트 스프라이트로 대체)
+    this.player.setVisible(false);
+    if (this.player.facingMarker) this.player.facingMarker.setVisible(false);
   }
 
   updatePlayerDecor() {
-    if (!this.pDecor) return;
+    if (!this.playerSprite) return;
     const p = this.player;
-    const f = p.facing;
-    const topY = p.y - p.height / 2;
-    const eyeY = p.y - p.height * 0.16;
-    // 뿔은 형태 색을 어둡게
-    const c = Phaser.Display.Color.IntegerToColor(evolutionData.getColor());
-    const horn = Phaser.Display.Color.GetColor(
-      Math.round(c.red * 0.45),
-      Math.round(c.green * 0.45),
-      Math.round(c.blue * 0.45),
-    );
-    this.pDecor.hornL.setPosition(p.x - 8, topY + 2).setFillStyle(horn);
-    this.pDecor.hornR.setPosition(p.x + 8, topY + 2).setFillStyle(horn);
-    this.pDecor.eyeL.setPosition(p.x - 6, eyeY);
-    this.pDecor.eyeR.setPosition(p.x + 6, eyeY);
-    this.pDecor.pupilL.setPosition(p.x - 6 + f * 2, eyeY);
-    this.pDecor.pupilR.setPosition(p.x + 6 + f * 2, eyeY);
-    const a = p.alpha; // 무적 깜빡임 동기화
-    Object.values(this.pDecor).forEach((o) => o.setAlpha(a));
+    const color = evolutionData.getColor();
+    if (color !== this._lastYokaiColor) {
+      this.playerSprite.setTexture(getYokaiTexture(this, color));
+      this.playerSprite.setDisplaySize(48, 58);
+      this._lastYokaiColor = color;
+    }
+    this.playerSprite.setPosition(p.x, p.y);
+    this.playerSprite.setFlipX(p.facing < 0);
+    this.playerSprite.setAlpha(p.alpha); // 무적 깜빡임 동기화
   }
 
   /** 배경 야경: 하늘 그라데이션 + 달(글로우) + 별 + 산 실루엣 */
