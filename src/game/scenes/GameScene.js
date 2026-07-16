@@ -20,6 +20,7 @@ import { careData } from '../../data/careData.js';
 import { rebirthData } from '../../data/rebirthData.js';
 import { skillData } from '../../data/skillData.js';
 import { expeditionData } from '../../data/expeditionData.js';
+import { retentionData } from '../../data/retentionData.js';
 import { getYokaiTexture } from '../pixelArt.js';
 import { audio } from '../audio.js';
 
@@ -88,6 +89,7 @@ export default class GameScene extends Phaser.Scene {
         this.applyStageBackground();
         this.showBanner(`🥚 부화! 🥚\n${evo.speciesName}`, '#ffd782');
         audio.sfx('hatch');
+        this.syncRetention();
         return;
       }
       if (evo.formId !== lastFormId) {
@@ -98,7 +100,9 @@ export default class GameScene extends Phaser.Scene {
           const label = evo.isFinal ? `✦ 승천! ✦\n${evo.formName}` : `✦ 진화! ✦\n${evo.formName}`;
           this.showBanner(label, '#ffe08a');
           audio.sfx(evo.isFinal ? 'ascend' : 'evolve');
+          retentionData.recordEvolve();
         }
+        this.syncRetention();
       }
     });
 
@@ -111,6 +115,7 @@ export default class GameScene extends Phaser.Scene {
         this.applyStageBackground();
         this.showBanner(`🔄 전생! 🔄\n환생 ${rb.count}회 · 영구 배율 ×${rb.multiplier}`, '#c0eb75');
         audio.sfx('rebirth');
+        this.syncRetention();
       }
     });
 
@@ -177,6 +182,13 @@ export default class GameScene extends Phaser.Scene {
       evolutionData.gainEssence(essence);
       this.showFloatingText(x - 14, y - 48, `+${essence} 정기`, '#8ce9ff');
 
+      // 리텐션(일일 미션·업적) 기록
+      retentionData.recordKill();
+      retentionData.recordGold(gold);
+      retentionData.recordEssence(essence);
+      if (isBoss) retentionData.recordBoss();
+      this.syncRetention();
+
       if (leveledUp) {
         this.showFloatingText(
           this.player.x,
@@ -199,6 +211,9 @@ export default class GameScene extends Phaser.Scene {
     // 시작 스테이지 배너
     const s0 = this.stageData.getState();
     this.showBanner(`챕터 ${s0.chapter} · ${s0.stageInChapter}/${CHAPTER.SIZE}\n${s0.stageName}`);
+
+    // 리텐션 최고기록 초기 동기화 (불러온 저장 데이터 반영)
+    this.syncRetention();
   }
 
   update(time) {
@@ -273,6 +288,16 @@ export default class GameScene extends Phaser.Scene {
 
   hex(int) {
     return `#${int.toString(16).padStart(6, '0')}`;
+  }
+
+  /** 업적용 최고기록 지표 동기화 (레벨/챕터/전생/도감) */
+  syncRetention() {
+    retentionData.sync({
+      level: playerData.getState().level,
+      chapter: stageData.getState().chapter,
+      rebirth: rebirthData.getState().count,
+      discovered: evolutionData.getState().discovered.length,
+    });
   }
 
   /** 단일 강타 이펙트 */

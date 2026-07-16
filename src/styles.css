@@ -1228,3 +1228,256 @@ body {
   accent-color: var(--gold, #d9b24a);
   cursor: pointer;
 }
+
+/* ===== 리텐션 (일일 미션 · 업적 · 출석) — 좌측 코덱스 아래 ===== */
+.retention {
+  position: absolute;
+  top: 140px;
+  left: 16px;
+  width: 300px;
+  max-width: calc(100% - 32px);
+  z-index: 19;
+  font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+}
+
+.ret-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  background: var(--ink, rgba(26, 20, 12, 0.93));
+  border: 1px solid var(--gold-line, rgba(201, 162, 39, 0.42));
+  border-radius: 9px;
+  color: var(--gold-lt, #f0d080);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ret-toggle-icon {
+  font-size: 15px;
+}
+
+.ret-toggle-label {
+  flex: 1;
+  text-align: left;
+}
+
+.ret-toggle-caret {
+  color: var(--cream, #efe4cb);
+  font-size: 11px;
+}
+
+.ret-badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e8503a;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  border-radius: 9px;
+  box-shadow: 0 0 8px rgba(232, 80, 58, 0.7);
+}
+
+.ret-panel {
+  margin-top: 8px;
+  padding: 10px;
+  background: var(--ink, rgba(26, 20, 12, 0.93));
+  border: 1px solid var(--gold-line, rgba(201, 162, 39, 0.42));
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 1px rgba(201, 162, 39, 0.14), 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+.ret-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.ret-tab {
+  flex: 1;
+  padding: 6px 0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--gold-line, rgba(201, 162, 39, 0.42));
+  border-radius: 7px;
+  color: var(--cream, #efe4cb);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ret-tab.on {
+  background: linear-gradient(180deg, var(--gold-lt, #f0d080), var(--gold, #d9b24a));
+  color: #2a1c00;
+}
+
+.ret-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ret-scroll {
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.ret-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(201, 162, 39, 0.2);
+  border-radius: 8px;
+}
+
+.ret-row.done {
+  opacity: 0.55;
+}
+
+.ret-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ret-row-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--cream, #efe4cb);
+}
+
+.ret-row-desc {
+  font-size: 10.5px;
+  font-weight: 400;
+  color: #a99a7a;
+}
+
+.ret-row-reward {
+  font-size: 11px;
+  color: var(--gold-lt, #f0d080);
+}
+
+.ret-bar {
+  height: 5px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ret-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #8ce99a, #4dabf7);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.ret-row-prog {
+  font-size: 10px;
+  color: #9a927f;
+  text-align: right;
+}
+
+.ret-claim {
+  flex-shrink: 0;
+  width: 52px;
+  padding: 8px 0;
+  border: none;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  background: linear-gradient(180deg, var(--gold-lt, #f0d080), var(--gold, #d9b24a));
+  color: #2a1c00;
+}
+
+.ret-claim:disabled {
+  background: rgba(255, 255, 255, 0.08);
+  color: #6b6350;
+  cursor: default;
+}
+
+.ret-hint {
+  font-size: 10px;
+  color: #7d7893;
+  text-align: center;
+  margin-top: 2px;
+}
+
+/* ===== 출석 ===== */
+.ret-att-head {
+  font-size: 12.5px;
+  color: var(--cream, #efe4cb);
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.ret-att-head b {
+  color: var(--gold-lt, #f0d080);
+}
+
+.ret-att-cycle {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.ret-att-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 7px 3px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(201, 162, 39, 0.22);
+  border-radius: 7px;
+  text-align: center;
+}
+
+.ret-att-day.got {
+  opacity: 0.45;
+}
+
+.ret-att-day.next {
+  border-color: var(--gold-lt, #f0d080);
+  box-shadow: 0 0 8px rgba(240, 208, 128, 0.4);
+}
+
+.ret-att-daynum {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--gold-lt, #f0d080);
+}
+
+.ret-att-daygift {
+  font-size: 9.5px;
+  color: #b8ab8a;
+  line-height: 1.2;
+}
+
+.ret-att-claim {
+  width: 100%;
+  padding: 10px 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  background: linear-gradient(180deg, var(--gold-lt, #f0d080), var(--gold, #d9b24a));
+  color: #2a1c00;
+}
+
+.ret-att-claim:disabled {
+  background: rgba(255, 255, 255, 0.08);
+  color: #6b6350;
+  cursor: default;
+}

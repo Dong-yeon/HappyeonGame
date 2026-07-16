@@ -10,6 +10,7 @@ import Rebirth from './components/Rebirth.jsx';
 import SpeciesPicker from './components/SpeciesPicker.jsx';
 import SkillIndicator from './components/SkillIndicator.jsx';
 import Expedition from './components/Expedition.jsx';
+import Retention from './components/Retention.jsx';
 import AudioControls from './components/AudioControls.jsx';
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
       <Codex onHatch={() => setHatchOpen(true)} />
       <Care />
       <Expedition />
+      <Retention />
       <SkillIndicator />
       <AudioControls />
       <Evolve />

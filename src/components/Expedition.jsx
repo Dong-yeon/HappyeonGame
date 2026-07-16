@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { expeditionData } from '../data/expeditionData.js';
+import { retentionData } from '../data/retentionData.js';
 import { economyData } from '../data/economyData.js';
 
 /**
@@ -101,7 +102,12 @@ export default function Expedition() {
                   </button>
                 </div>
               ) : (
-                <button className="exped-btn send" onClick={() => expeditionData.send(x.key)}>
+                <button
+                  className="exped-btn send"
+                  onClick={() => {
+                    if (expeditionData.send(x.key)) retentionData.recordExpedition();
+                  }}
+                >
                   파견
                 </button>
               )}

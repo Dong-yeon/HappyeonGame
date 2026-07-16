@@ -86,9 +86,10 @@ export function createExpeditionData() {
 
     /** 원정 파견 */
     send(key) {
-      if (!SPECIES[key]) return;
+      if (!SPECIES[key]) return false;
       state.active[key] = Date.now();
       emit();
+      return true;
     },
 
     /** 누적 재료 수령 (원정은 계속) */
