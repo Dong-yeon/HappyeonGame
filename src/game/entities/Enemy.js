@@ -33,6 +33,8 @@ export default class Enemy extends Phaser.GameObjects.Rectangle {
     // ===== 인간 병사/장수 도트 스프라이트 (사각형 몸은 히트박스로만 사용, 숨김) =====
     this.setVisible(false);
     const texKey = this.isBoss || this.isCaptain ? getGeneralTexture(scene) : getSoldierTexture(scene);
+    // 바닥 접지 그림자 (입체감)
+    this.shadow = scene.add.ellipse(x, y + height / 2 - 2, width * 1.1, height * 0.28, 0x000000, 0.28).setDepth(1);
     this.sprite = scene.add.sprite(x, y, texKey).setDepth(2);
     this.sprite.setDisplaySize(width * 1.3, height * 1.25);
 
@@ -53,9 +55,10 @@ export default class Enemy extends Phaser.GameObjects.Rectangle {
     else if (this.body.blocked.right) this.dir = -1;
     this.body.setVelocityX(this.dir * this.moveSpeed);
 
-    // 스프라이트/HP바 위치 갱신
+    // 스프라이트/HP바/그림자 위치 갱신
     this.sprite.setPosition(this.x, this.y);
     this.sprite.setFlipX(this.dir > 0); // 창이 진행 방향을 향하도록
+    if (this.shadow) this.shadow.setPosition(this.x, this.y + this.height / 2 - 2);
     this.hpBar.setPosition(this.x, this.y - this.height / 2 - 12);
     this.hpBar.width = this.width * (this.hp / this.maxHp);
     if (this.flag) {
@@ -94,7 +97,7 @@ export default class Enemy extends Phaser.GameObjects.Rectangle {
   }
 
   destroy(fromScene) {
-    [this.hpBar, this.sprite, this.flag, this.flagPole].forEach((o) => {
+    [this.hpBar, this.sprite, this.flag, this.flagPole, this.shadow].forEach((o) => {
       if (o && o.active) o.destroy();
     });
     super.destroy(fromScene);

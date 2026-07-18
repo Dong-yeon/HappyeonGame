@@ -563,6 +563,8 @@ export default class GameScene extends Phaser.Scene {
   /** 요괴(플레이어) 도트 스프라이트 — Player.js 는 건드리지 않고 씬이 따라다니게 */
   createPlayerDecor() {
     const evo = evolutionData.getState();
+    // 바닥 접지 그림자 (입체감)
+    this.playerShadow = this.add.ellipse(this.player.x, this.player.y, 44, 12, 0x000000, 0.32).setDepth(2);
     this.playerSprite = this.add
       .sprite(this.player.x, this.player.y, getYokaiTexture(this, evo.species, evo.tier, evo.color))
       .setDepth(3);
@@ -583,9 +585,16 @@ export default class GameScene extends Phaser.Scene {
       this._applyYokaiSize(evo.tier);
       this._lastYokaiKey = key;
     }
-    this.playerSprite.setPosition(p.x, p.y);
+    // 미세한 숨쉬기 바운스(생동감) — 그림자는 바닥에 고정
+    const bob = Math.sin(this.time.now / 320) * 1.2;
+    this.playerSprite.setPosition(p.x, p.y + bob);
     this.playerSprite.setFlipX(p.facing < 0);
     this.playerSprite.setAlpha(p.alpha); // 무적 깜빡임 동기화
+    // 발밑 그림자: 스프라이트 바닥에 붙되 크기는 형태 크기 비례
+    const half = this.playerSprite.displayHeight / 2;
+    this.playerShadow.setPosition(p.x, p.y + half - 3);
+    this.playerShadow.setDisplaySize(this.playerSprite.displayWidth * 0.7, 11);
+    this.playerShadow.setAlpha(0.3 * p.alpha);
   }
 
   /** 형태(tier)별 표시 크기 — 새끼는 작게, 궁극체는 가장 크게 (성장감) */

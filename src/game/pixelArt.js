@@ -6,7 +6,7 @@
  */
 import Phaser from 'phaser';
 
-/** 색을 어둡게 (외곽선용) */
+/** 색을 어둡게 (음영·외곽선용) */
 function darken(color, f) {
   const c = Phaser.Display.Color.IntegerToColor(color);
   return Phaser.Display.Color.GetColor(
@@ -16,22 +16,84 @@ function darken(color, f) {
   );
 }
 
-/** ASCII 격자 + 팔레트로 텍스처 생성 (이미 있으면 재사용) */
-export function makePixelTexture(scene, key, grid, palette) {
+/** 색을 밝게 (상단 림 하이라이트용) */
+function lighten(color, f) {
+  const c = Phaser.Display.Color.IntegerToColor(color);
+  return Phaser.Display.Color.GetColor(
+    Math.min(255, Math.round(c.red * f)),
+    Math.min(255, Math.round(c.green * f)),
+    Math.min(255, Math.round(c.blue * f)),
+  );
+}
+
+/**
+ * ASCII 격자 + 팔레트로 텍스처 생성 (이미 있으면 재사용).
+ *
+ * 상업적 도트 품질을 위해 렌더 시 자동으로:
+ *  - 실루엣 둘레에 선명한 외곽선(opts.outline)
+ *  - 각 열의 최상단 셀에 림 하이라이트(위에서 오는 빛), 최하단 셀에 접지 음영
+ * → 격자를 다시 그리지 않고도 입체감 있는 스프라이트가 된다.
+ * opts.flatTokens 문자(예: 눈 'WK')는 음영을 건너뛰어 또렷하게 유지.
+ */
+export function makePixelTexture(scene, key, grid, palette, opts = {}) {
   if (scene.textures.exists(key)) return key;
-  const w = Math.max(...grid.map((r) => r.length));
-  const h = grid.length;
-  const g = scene.make.graphics({ x: 0, y: 0, add: false });
-  for (let y = 0; y < h; y += 1) {
+  const { outline = null, autoShade = true, lightF = 1.24, darkF = 0.72, flatTokens = '' } = opts;
+
+  const H = grid.length;
+  const W = Math.max(...grid.map((r) => r.length));
+  const PAD = outline != null ? 1 : 0;
+  const cols = W + PAD * 2;
+  const rows = H + PAD * 2;
+
+  // 1px 패딩된 토큰 맵
+  const tok = Array.from({ length: rows }, () => new Array(cols).fill('.'));
+  for (let y = 0; y < H; y += 1) {
     const row = grid[y];
-    for (let x = 0; x < row.length; x += 1) {
-      const col = palette[row[x]];
-      if (col == null) continue;
-      g.fillStyle(col, 1);
-      g.fillRect(x, y, 1, 1);
+    for (let x = 0; x < row.length; x += 1) tok[y + PAD][x + PAD] = row[x];
+  }
+  const colorAt = (y, x) => (y >= 0 && y < rows && x >= 0 && x < cols ? palette[tok[y][x]] : null);
+  const filled = (y, x) => colorAt(y, x) != null;
+
+  // 열별 최상단/최하단 (자동 음영)
+  const topY = new Array(cols).fill(-1);
+  const botY = new Array(cols).fill(-1);
+  if (autoShade) {
+    for (let x = 0; x < cols; x += 1) {
+      for (let y = 0; y < rows; y += 1) {
+        if (filled(y, x)) {
+          if (topY[x] < 0) topY[x] = y;
+          botY[x] = y;
+        }
+      }
     }
   }
-  g.generateTexture(key, w, h);
+
+  const g = scene.make.graphics({ x: 0, y: 0, add: false });
+  const put = (x, y, col) => {
+    g.fillStyle(col, 1);
+    g.fillRect(x, y, 1, 1);
+  };
+
+  for (let y = 0; y < rows; y += 1) {
+    for (let x = 0; x < cols; x += 1) {
+      const base = colorAt(y, x);
+      if (base == null) {
+        // 빈 셀이 채워진 셀과 상하좌우로 맞닿으면 외곽선
+        if (outline != null && (filled(y - 1, x) || filled(y + 1, x) || filled(y, x - 1) || filled(y, x + 1))) {
+          put(x, y, outline);
+        }
+        continue;
+      }
+      let col = base;
+      if (autoShade && !flatTokens.includes(tok[y][x])) {
+        if (y === topY[x]) col = lighten(base, lightF);
+        else if (y === botY[x]) col = darken(base, darkF);
+      }
+      put(x, y, col);
+    }
+  }
+
+  g.generateTexture(key, cols, rows);
   g.destroy();
   return key;
 }
@@ -394,11 +456,12 @@ const SPECIES_GRIDS = {
 };
 
 function yokaiPalette(color) {
+  // 자동 외곽선/림/접지음영이 렌더 시 얹히므로, 격자 토큰은 은은한 3톤(D/B/S)만 담당
   return {
     B: color,
-    D: darken(color, 0.4),
-    S: darken(color, 0.62),
-    W: 0xf6f6f6,
+    D: darken(color, 0.8), // 은은한 가장자리 톤 (예전 외곽선 → 자동 외곽선으로 대체)
+    S: darken(color, 0.55), // 뿔·날개·꼬리 등 깊은 음영 액센트
+    W: 0xf7f4ee, // 눈 흰자 (약간 따뜻하게)
     K: 0x141414,
     N: 0x201d29,
     R: 0xe03131,
@@ -413,8 +476,12 @@ export function getYokaiTexture(scene, speciesKey, tier, color) {
   const bySpecies = SPECIES_GRIDS[speciesKey] || SPECIES_GRIDS.imugi;
   // 궁극체(tier 4)는 전용 격자가 없으면 최종체(tier 3) 도트를 재사용 (색·크기로 차별화)
   const grid = bySpecies[tier] || bySpecies[3] || bySpecies[2] || bySpecies[1];
-  const key = `yokai_${speciesKey}_${tier}_${color.toString(16)}`;
-  return makePixelTexture(scene, key, grid, yokaiPalette(color));
+  const key = `yokaiV2_${speciesKey}_${tier}_${color.toString(16)}`;
+  return makePixelTexture(scene, key, grid, yokaiPalette(color), {
+    outline: darken(color, 0.28),
+    autoShade: true,
+    flatTokens: 'WK', // 눈은 또렷하게
+  });
 }
 
 // ===== 인간 병사(적) — 투구/얼굴/갑주/창 =====
@@ -439,16 +506,22 @@ const SOLDIER = [
 ];
 
 export function getSoldierTexture(scene) {
-  return makePixelTexture(scene, 'human_soldier', SOLDIER, {
-    H: 0x545159,
-    S: 0xe6b58a,
-    E: 0x2b2b2b,
-    A: 0xc9a26b,
-    D: 0x7a5a34,
-    P: 0x9c7038,
-    L: 0x2e2620,
-    '.': null,
-  });
+  return makePixelTexture(
+    scene,
+    'human_soldierV2',
+    SOLDIER,
+    {
+      H: 0x545159,
+      S: 0xe6b58a,
+      E: 0x2b2b2b,
+      A: 0xc9a26b,
+      D: 0x7a5a34,
+      P: 0x9c7038,
+      L: 0x2e2620,
+      '.': null,
+    },
+    { outline: 0x1c1712, autoShade: true, flatTokens: 'E' },
+  );
 }
 
 // ===== 인간 장수(보스) — 붉은 깃털 투구 + 짙은 갑주 =====
@@ -473,15 +546,21 @@ const GENERAL = [
 ];
 
 export function getGeneralTexture(scene) {
-  return makePixelTexture(scene, 'human_general', GENERAL, {
-    R: 0xe03131,
-    H: 0x3a3550,
-    S: 0xe6b58a,
-    E: 0x2b2b2b,
-    A: 0x5f4a8a,
-    D: 0x3a2e58,
-    P: 0x9c7038,
-    L: 0x241d2e,
-    '.': null,
-  });
+  return makePixelTexture(
+    scene,
+    'human_generalV2',
+    GENERAL,
+    {
+      R: 0xe03131,
+      H: 0x3a3550,
+      S: 0xe6b58a,
+      E: 0x2b2b2b,
+      A: 0x5f4a8a,
+      D: 0x3a2e58,
+      P: 0x9c7038,
+      L: 0x241d2e,
+      '.': null,
+    },
+    { outline: 0x140f1e, autoShade: true, flatTokens: 'E' },
+  );
 }
