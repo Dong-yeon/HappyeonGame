@@ -78,6 +78,7 @@ export const CHAPTER = {
   RAID_ESCORT_MAX: 6, // 호위 병사 최대 수
   RAID_ESCORT_HP_MUL: 1.3, // 호위 병사 체력 배율 (일반 적 대비 — 정예)
   RAID_ESCORT_MAT: 1, // 호위 병사 1명 격파 시 추가 재료
+  DMG_DAMPEN: 0.88, // 챕터2+ 적 피해 배율 완화 (비전생 진행 숨통, 체력은 그대로 유지)
 };
 
 // ===== 특수 진화(합체) — 궁극체 각성 아이템 =====
