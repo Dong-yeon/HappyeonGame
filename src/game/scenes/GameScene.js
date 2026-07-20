@@ -529,6 +529,8 @@ export default class GameScene extends Phaser.Scene {
       }
     });
     this.resetAmbush(); // 관문 처리로 기습 유닛이 함께 정리될 수 있으므로 카운터 초기화
+    // 관문 유예: 관문 중 억제되며 쌓인 악명도로 격파 직후 기습이 곧바로 터지는 스파이크 방지
+    this.nextAmbushAt = Math.max(this.nextAmbushAt, this.notoriety + AMBUSH.NOTORIETY_INTERVAL);
 
     this.stageData.clearStage();
     const s = this.stageData.getState();
