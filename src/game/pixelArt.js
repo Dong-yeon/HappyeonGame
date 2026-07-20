@@ -54,15 +54,25 @@ export function makePixelTexture(scene, key, grid, palette, opts = {}) {
   const colorAt = (y, x) => (y >= 0 && y < rows && x >= 0 && x < cols ? palette[tok[y][x]] : null);
   const filled = (y, x) => colorAt(y, x) != null;
 
-  // 열별 최상단/최하단 (자동 음영)
+  // 열별 최상단/최하단 + 행별 최좌/최우 (자동 음영 — 위쪽·왼쪽 광원)
   const topY = new Array(cols).fill(-1);
   const botY = new Array(cols).fill(-1);
+  const leftX = new Array(rows).fill(-1);
+  const rightX = new Array(rows).fill(-1);
   if (autoShade) {
     for (let x = 0; x < cols; x += 1) {
       for (let y = 0; y < rows; y += 1) {
         if (filled(y, x)) {
           if (topY[x] < 0) topY[x] = y;
           botY[x] = y;
+        }
+      }
+    }
+    for (let y = 0; y < rows; y += 1) {
+      for (let x = 0; x < cols; x += 1) {
+        if (filled(y, x)) {
+          if (leftX[y] < 0) leftX[y] = x;
+          rightX[y] = x;
         }
       }
     }
@@ -86,8 +96,10 @@ export function makePixelTexture(scene, key, grid, palette, opts = {}) {
       }
       let col = base;
       if (autoShade && !flatTokens.includes(tok[y][x])) {
-        if (y === topY[x]) col = lighten(base, lightF);
-        else if (y === botY[x]) col = darken(base, darkF);
+        if (y === topY[x]) col = lighten(base, lightF); // 상단 림 하이라이트
+        else if (y === botY[x]) col = darken(base, darkF); // 접지 음영
+        else if (x === leftX[y]) col = lighten(base, 1.09); // 좌측 은은한 광
+        else if (x === rightX[y]) col = darken(base, 0.9); // 우측 은은한 음영
       }
       put(x, y, col);
     }

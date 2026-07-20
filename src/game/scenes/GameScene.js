@@ -49,23 +49,26 @@ export default class GameScene extends Phaser.Scene {
     this.walls = this.physics.add.staticGroup();
     this.enemies = this.add.group({ runChildUpdate: true });
 
-    // ===== 플랫폼 생성 (바닥 + 공중 플랫폼) =====
+    // ===== 플랫폼 생성 (바닥 + 공중 플랫폼) — 흙 본체 + 잔디·술·질감 데코 =====
     PLATFORMS.forEach((p) => {
-      const color = p.isGround ? 0x5c4033 : 0x6b5344; // 바닥: 흙색 / 플랫폼: 옅은 갈색
-      const plat = this.add.rectangle(p.x, p.y, p.width, p.height, color);
+      const plat = this.add.rectangle(p.x, p.y, p.width, p.height, p.isGround ? 0x4a3324 : 0x5b4130);
       plat.isGround = !!p.isGround; // 원웨이 판정용 (바닥만 완전 솔리드)
-      // 윗면 잔디 표시
-      this.add.rectangle(p.x, p.y - p.height / 2 + 4, p.width, 8, 0x4a7c3a);
       this.physics.add.existing(plat, true);
       this.platforms.add(plat);
+      this.decoratePlatform(p);
     });
 
-    // ===== 좌우 벽 =====
+    // ===== 좌우 벽 (물리만, 시각은 가장자리 비네트로 대체) =====
     [WALL_THICKNESS / 2, GAME_WIDTH - WALL_THICKNESS / 2].forEach((wx) => {
-      const wall = this.add.rectangle(wx, GAME_HEIGHT / 2, WALL_THICKNESS, GAME_HEIGHT, 0x3a2e28);
+      const wall = this.add.rectangle(wx, GAME_HEIGHT / 2, WALL_THICKNESS, GAME_HEIGHT, 0x000000, 0);
       this.physics.add.existing(wall, true);
       this.walls.add(wall);
     });
+    const vig = this.add.graphics().setDepth(-12);
+    vig.fillGradientStyle(0x0b0806, 0x0b0806, 0x0b0806, 0x0b0806, 0.6, 0, 0.6, 0);
+    vig.fillRect(0, 0, 110, GAME_HEIGHT);
+    vig.fillGradientStyle(0x0b0806, 0x0b0806, 0x0b0806, 0x0b0806, 0, 0.6, 0, 0.6);
+    vig.fillRect(GAME_WIDTH - 110, 0, 110, GAME_HEIGHT);
 
     // ===== 플레이어(요괴, 바닥 위에서 시작) — 현재 진화 단계 색 적용 =====
     const groundTop = PLATFORMS[0].y - PLATFORMS[0].height / 2;
@@ -573,6 +576,8 @@ export default class GameScene extends Phaser.Scene {
     const evo = evolutionData.getState();
     // 바닥 접지 그림자 (입체감)
     this.playerShadow = this.add.ellipse(this.player.x, this.player.y, 44, 12, 0x000000, 0.32).setDepth(2);
+    // 영물 아우라 (형태 색의 은은한 발광)
+    this.playerGlow = this.add.circle(this.player.x, this.player.y, 30, evo.color, 0.13).setDepth(2);
     this.playerSprite = this.add
       .sprite(this.player.x, this.player.y, getYokaiTexture(this, evo.species, evo.tier, evo.color))
       .setDepth(3);
@@ -591,6 +596,7 @@ export default class GameScene extends Phaser.Scene {
     if (key !== this._lastYokaiKey) {
       this.playerSprite.setTexture(getYokaiTexture(this, evo.species, evo.tier, evo.color));
       this._applyYokaiSize(evo.tier);
+      this.playerGlow.setFillStyle(evo.color, 0.13); // 진화 시 아우라 색 갱신
       this._lastYokaiKey = key;
     }
     // 미세한 숨쉬기 바운스(생동감) — 그림자는 바닥에 고정
@@ -598,6 +604,11 @@ export default class GameScene extends Phaser.Scene {
     this.playerSprite.setPosition(p.x, p.y + bob);
     this.playerSprite.setFlipX(p.facing < 0);
     this.playerSprite.setAlpha(p.alpha); // 무적 깜빡임 동기화
+    // 아우라: 스프라이트 뒤에서 은은히 맥동
+    const pulse = 1 + Math.sin(this.time.now / 520) * 0.08;
+    this.playerGlow.setPosition(p.x, p.y + bob);
+    this.playerGlow.setDisplaySize(this.playerSprite.displayWidth * 1.15 * pulse, this.playerSprite.displayHeight * 1.0 * pulse);
+    this.playerGlow.setAlpha(0.13 * p.alpha);
     // 발밑 그림자: 스프라이트 바닥에 붙되 크기는 형태 크기 비례
     const half = this.playerSprite.displayHeight / 2;
     this.playerShadow.setPosition(p.x, p.y + half - 3);
@@ -611,32 +622,48 @@ export default class GameScene extends Phaser.Scene {
     this.playerSprite.setDisplaySize(size[0], size[1]);
   }
 
-  /** 배경 야경: 하늘 그라데이션 + 달(글로우) + 별 + 산 실루엣 */
+  /** 배경 야경: 하늘 그라데이션 + 큰 달(헤일로) + 반짝이는 별 + 3겹 산 + 안개 + 떠도는 도깨비불 */
   createBackground() {
     this.skyGfx = this.add.graphics().setDepth(-20);
 
-    // 달 (글로우 + 본체)
-    this.add.circle(GAME_WIDTH - 210, 130, 66, 0xfff3bf, 0.12).setDepth(-18);
-    this.add.circle(GAME_WIDTH - 210, 130, 46, 0xfff3bf, 0.2).setDepth(-18);
-    this.add.circle(GAME_WIDTH - 210, 130, 34, 0xfdf6d8, 1).setDepth(-17);
-    this.add.circle(GAME_WIDTH - 198, 122, 26, 0xf0e6c0, 0.5).setDepth(-16); // 음영
+    // 달 — 부드러운 헤일로 + 본체 + 크레이터
+    const mx = GAME_WIDTH - 220;
+    const my = 128;
+    [[100, 0.05], [78, 0.09], [56, 0.15]].forEach(([r, a]) =>
+      this.add.circle(mx, my, r, 0xfff3bf, a).setDepth(-18));
+    this.add.circle(mx, my, 40, 0xfdf6d8, 1).setDepth(-17);
+    this.add.circle(mx + 11, my - 9, 8, 0xe9ddba, 0.5).setDepth(-16);
+    this.add.circle(mx - 10, my + 7, 5.5, 0xe9ddba, 0.45).setDepth(-16);
+    this.add.circle(mx + 5, my + 13, 4, 0xe9ddba, 0.4).setDepth(-16);
 
-    // 별
-    for (let i = 0; i < 46; i += 1) {
-      const x = Phaser.Math.Between(20, GAME_WIDTH - 20);
-      const y = Phaser.Math.Between(20, GAME_HEIGHT * 0.5);
-      const s = Phaser.Math.FloatBetween(0.6, 1.6);
-      this.add.circle(x, y, s, 0xffffff, Phaser.Math.FloatBetween(0.4, 0.9)).setDepth(-18);
+    // 별 — 크기·밝기 다양 + 일부 반짝임
+    for (let i = 0; i < 66; i += 1) {
+      const x = Phaser.Math.Between(16, GAME_WIDTH - 16);
+      const y = Phaser.Math.Between(16, GAME_HEIGHT * 0.56);
+      const s = Phaser.Math.FloatBetween(0.6, 1.9);
+      const star = this.add.circle(x, y, s, 0xffffff, Phaser.Math.FloatBetween(0.35, 0.95)).setDepth(-18);
+      if (Math.random() < 0.4) {
+        this.tweens.add({
+          targets: star, alpha: 0.12, duration: Phaser.Math.Between(1300, 2800),
+          yoyo: true, repeat: -1, delay: Phaser.Math.Between(0, 2200),
+        });
+      }
     }
 
-    // 산 실루엣 (뒤→앞, 점점 밝게)
+    // 지평선 안개 밴드 (원경 흐림)
     const horizon = GAME_HEIGHT - 90;
+    const fog = this.add.graphics().setDepth(-15);
+    fog.fillGradientStyle(0x39456e, 0x39456e, 0x39456e, 0x39456e, 0, 0, 0.3, 0.3);
+    fog.fillRect(0, horizon - 46, GAME_WIDTH, 130);
+
+    // 산 실루엣 — 3겹 (원경=옅음 → 근경=짙음)으로 깊이감
     const ranges = [
-      { color: 0x161a2b, peaks: [[-50, 120], [280, 220], [620, 150], [980, 240], [1330, 160]], base: horizon + 30 },
-      { color: 0x1f2438, peaks: [[-50, 60], [180, 150], [500, 90], [820, 170], [1150, 100], [1330, 150]], base: horizon + 60 },
+      { color: 0x2b3352, base: horizon + 6, peaks: [[-50, 90], [240, 170], [560, 110], [900, 190], [1330, 120]] },
+      { color: 0x1e2540, base: horizon + 38, peaks: [[-50, 70], [180, 150], [500, 100], [820, 175], [1150, 110], [1330, 150]] },
+      { color: 0x141a30, base: horizon + 74, peaks: [[-50, 50], [120, 120], [420, 80], [700, 140], [1000, 90], [1280, 130]] },
     ];
-    ranges.forEach((r) => {
-      const g = this.add.graphics().setDepth(-15);
+    ranges.forEach((r, i) => {
+      const g = this.add.graphics().setDepth(-16 + i);
       g.fillStyle(r.color, 1);
       g.beginPath();
       g.moveTo(-50, r.base);
@@ -647,6 +674,52 @@ export default class GameScene extends Phaser.Scene {
       g.closePath();
       g.fillPath();
     });
+
+    // 떠도는 도깨비불 (분위기 파티클) — 천천히 이동 + 은은한 명멸
+    const spiritColors = [0x74e0c0, 0x9ad0ff, 0xc9b6ff, 0xa8e6a0];
+    for (let i = 0; i < 6; i += 1) {
+      const x = Phaser.Math.Between(120, GAME_WIDTH - 120);
+      const y = Phaser.Math.Between(Math.round(GAME_HEIGHT * 0.42), Math.round(GAME_HEIGHT * 0.72));
+      const col = spiritColors[i % spiritColors.length];
+      const glow = this.add.circle(x, y, Phaser.Math.Between(8, 12), col, 0.16).setDepth(-13);
+      const orb = this.add.circle(x, y, Phaser.Math.FloatBetween(2.4, 3.8), col, 0.85).setDepth(-13);
+      this.tweens.add({
+        targets: [orb, glow], x: x + Phaser.Math.Between(-140, 140), y: y + Phaser.Math.Between(-70, 70),
+        duration: Phaser.Math.Between(6000, 11000), yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+      });
+      this.tweens.add({
+        targets: [orb, glow], alpha: 0.22, duration: Phaser.Math.Between(1600, 3000),
+        yoyo: true, repeat: -1, delay: Phaser.Math.Between(0, 1500),
+      });
+    }
+  }
+
+  /** 플랫폼 데코 — 흙 본체 위에 잔디 캡·술·상단 하이라이트·바닥 그림자·질감 speckle */
+  decoratePlatform(p) {
+    const top = p.y - p.height / 2;
+    const halfW = p.width / 2;
+    const left = p.x - halfW;
+    const right = p.x + halfW;
+    // 흙 상단 하이라이트 / 바닥 그림자 엣지
+    this.add.rectangle(p.x, top + 7, p.width, 6, p.isGround ? 0x6a4a34 : 0x76543d).setDepth(0);
+    this.add.rectangle(p.x, p.y + p.height / 2 - 3, p.width, 5, 0x2c1e14).setDepth(0);
+    // 잔디 캡 + 상단 밝은 선
+    this.add.rectangle(p.x, top + 3, p.width, 8, 0x57a03f).setDepth(0);
+    this.add.rectangle(p.x, top + 1, p.width, 3, 0x7cc95a).setDepth(0);
+    // 잔디 술 (가장자리 위로 삐죽)
+    for (let x = left + 8; x < right - 4; x += 17) {
+      const h = Phaser.Math.Between(4, 10);
+      const gx = x + Phaser.Math.Between(-3, 3);
+      const shade = Math.random() < 0.5 ? 0x57a03f : 0x6cbb4c;
+      this.add.rectangle(gx, top - h / 2 + 3, Phaser.Math.Between(2, 4), h, shade).setDepth(0);
+    }
+    // 흙 speckle (질감)
+    const speckles = Math.max(2, Math.floor(p.width / 44));
+    for (let i = 0; i < speckles; i += 1) {
+      const sx = Phaser.Math.Between(left + 10, right - 10);
+      const sy = Phaser.Math.Between(top + 14, p.y + p.height / 2 - 6);
+      this.add.circle(sx, sy, Phaser.Math.FloatBetween(1, 2), 0x38271a, 0.6).setDepth(0);
+    }
   }
 
   /** 떠오르며 사라지는 피해 숫자 */

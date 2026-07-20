@@ -21,7 +21,7 @@ export const PLAYER = {
   HEIGHT: 48,
   COLOR: 0x2f9e44, // 요괴 기본색 (실제 색은 진화 단계에 따라 evolutionData 가 결정)
   MOVE_SPEED: 170, // 이동 속도 (px/s)
-  JUMP_VELOCITY: -600,
+  JUMP_VELOCITY: -640,
   ATTACK_RANGE: 95, // 공격 사거리 (px)
   ATTACK_COOLDOWN: 500, // 공격 쿨타임 (ms)
   ATTACK_VERTICAL_TOLERANCE: 48, // 이 높이차 이내의 적만 공격 (같은 층 판정)
