@@ -455,6 +455,58 @@ const SPECIES_GRIDS = {
   },
 };
 
+// ===== 궁극체(tier 4) 전용 도트 — 좌측 절반(8칸)을 미러링해 16칸 대칭 격자로 =====
+// 최종체보다 크고 위엄있는 형태 + 금(Y) 장식으로 궁극체 위상을 표현.
+const ULT_HALVES = {
+  imugi: [ // 여의주룡 — 금뿔·날개·붉은 여의주(대비)
+    '....Y...', '...YS...', '....SD..', '...DBBBB', '..DBBBBB',
+    '.SDBWKBB', 'SSDBBBBB', 'SSDBBBBB', '.SDBBBBB', '..DBBBBB',
+    '...DBBBB', '....DBBB', '.....DBB', '....DBBR', '...DBBBR',
+    '...DBBBB', '....DBBS', '.....DBS',
+  ],
+  gumiho: [ // 구미신호 — 귀·금관·구미(꼬리 부채)
+    'SS..Y...', 'SS.YSY..', '..SDBBBB', '..DBBBBB', '.SDBWKBB',
+    '..DBBBBB', '..DBBBBB', '..DBBBBB', '...DBBBB', '...DBBBB',
+    '....DBBB', '...SDBBB', '..SSDBBB', '.SSSDBBB', 'SSSSDBBB',
+    'SSSS.DBB', 'SSS...DB', 'SS......',
+  ],
+  dokkaebi: [ // 도깨비 신장 — 큰 뿔·금띠·붉은 눈·거구
+    '..S.....', '..SS....', '..SSY...', '.DBBBBBB', '.DBRKBBB',
+    '.DBBBBBB', 'DBBKKBBB', 'DBBBBBBB', 'DBBYYBBB', 'DBBBBBBB',
+    '.DBBBBBB', '.DBBBBBB', '..DBBBBB', '..DB..BB', '..DB..BB',
+    '..DD..DD',
+  ],
+  bulgasari: [ // 불가살 — 가시·엄니·붉은 눈·철갑
+    'S.S.....', '.SBS....', '.DBBBBBB', 'DBRBBBBB', 'DBBBBBBB',
+    'DBBFFBBB', 'DBBBBBBB', 'SDBBBBBB', 'SDBBBBBB', 'SDBBBBBB',
+    '.DBBBBBB', '.DBBBBBB', '..DBBBBB', '..DB..BB', '..DD..DD',
+    'S.......',
+  ],
+  geuseundae: [ // 그슨대 마신 — 뿔·다중 붉은 눈·어둠 촉수
+    '..S.....', '.SS.....', '.SBS....', '.DBBBBBB', 'DBRBRBBB',
+    'DBBBBBBB', 'DBRBBBRB', 'DBBBBBBB', 'DBBBBBBB', '.DBBBBBB',
+    '.DBBBBBB', '..NBBBBB', '..NNBBBN', '.N.NN.N.', 'N..N..N.',
+    'N.......',
+  ],
+  gureongi: [ // 사왕 — 금관·목두건·엄니·붉은 혀
+    '...YY...', '..YBBY..', '.DBBBBBB', 'DBBWKBBB', 'DBBBBBBB',
+    'DBFBBFBB', '.DBBRBBB', '.DBBBBBB', '..DBBBBB', '..DBBBBB',
+    '...DBBBB', '...DBBBB', '....DBBB', '....DBBB', '....DBBB',
+    '.....DBB', '.....DBB', '......DB',
+  ],
+  jeoseung: [ // 염라대왕 — 금관·해골 얼굴·금장 곤룡포
+    '..YYY...', '.YFFFF..', '..FFFF..', '..FKFF..', '..FFFF..',
+    '.DBBBBBB', 'DBBBBBBB', 'DBBYYBBB', 'DBBBBBBB', 'DBBBBBBB',
+    'DBBBBBBB', '.DBBBBBB', '.DBBBBBB', '..DBBBBB', '..DB..BB',
+    '..DD..DD',
+  ],
+};
+
+const mirrorRow = (h) => h + [...h].reverse().join('');
+for (const [sp, halves] of Object.entries(ULT_HALVES)) {
+  if (SPECIES_GRIDS[sp]) SPECIES_GRIDS[sp][4] = halves.map(mirrorRow);
+}
+
 function yokaiPalette(color) {
   // 자동 외곽선/림/접지음영이 렌더 시 얹히므로, 격자 토큰은 은은한 3톤(D/B/S)만 담당
   return {
