@@ -53,6 +53,7 @@ export default class GameScene extends Phaser.Scene {
     PLATFORMS.forEach((p) => {
       const color = p.isGround ? 0x5c4033 : 0x6b5344; // 바닥: 흙색 / 플랫폼: 옅은 갈색
       const plat = this.add.rectangle(p.x, p.y, p.width, p.height, color);
+      plat.isGround = !!p.isGround; // 원웨이 판정용 (바닥만 완전 솔리드)
       // 윗면 잔디 표시
       this.add.rectangle(p.x, p.y - p.height / 2 + 4, p.width, 8, 0x4a7c3a);
       this.physics.add.existing(plat, true);
@@ -140,7 +141,12 @@ export default class GameScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, cleanup);
     this.events.once(Phaser.Scenes.Events.DESTROY, cleanup);
 
-    this.physics.add.collider(this.player, this.platforms);
+    // 공중 플랫폼은 원웨이: 아래에서 점프하면 통과, 위에서 내려올 때만 착지 (윗층 이동 막힘 해소)
+    this.physics.add.collider(this.player, this.platforms, null, (player, platform) => {
+      if (platform.isGround) return true; // 바닥은 항상 솔리드
+      const b = player.body;
+      return b.velocity.y >= 0 && b.bottom - b.deltaY() <= platform.body.top + 2;
+    });
     this.physics.add.collider(this.player, this.walls);
     this.physics.add.collider(this.enemies, this.platforms);
     this.physics.add.collider(this.enemies, this.walls);
