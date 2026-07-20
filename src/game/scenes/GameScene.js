@@ -26,6 +26,7 @@ import { getYokaiTexture } from '../pixelArt.js';
 import { audio } from '../audio.js';
 import { fmt } from '../../format.js';
 import { adData } from '../../data/adData.js';
+import { CHAPTER_THEMES } from '../stages.js';
 
 /**
  * 메인 사냥터 씬 — 고정 크기 맵 (메이플스토리 일반 사냥터 방식) + 스테이지 진행 구조.
@@ -553,21 +554,20 @@ export default class GameScene extends Phaser.Scene {
     audio.sfx('clear');
   }
 
-  /** 현재 스테이지 배경색 적용 */
+  /** 챕터 테마로 배경 적용 (하늘 그라데이션 + 챕터 변경 시 원경 요소 재구성) */
   applyStageBackground() {
-    const cfg = this.stageData.getConfig();
-    this.cameras.main.setBackgroundColor(cfg.bgColor);
-    // 스테이지 색으로 하늘 그라데이션 재도색 (위=스테이지색, 아래=어둡게)
+    const s = this.stageData.getState();
+    const theme = CHAPTER_THEMES[(s.chapter - 1) % CHAPTER_THEMES.length];
+    this.cameras.main.setBackgroundColor(theme.skyBottom);
     if (this.skyGfx) {
-      const c = Phaser.Display.Color.IntegerToColor(cfg.bgColor);
-      const dark = Phaser.Display.Color.GetColor(
-        Math.round(c.red * 0.35),
-        Math.round(c.green * 0.35),
-        Math.round(c.blue * 0.35),
-      );
       this.skyGfx.clear();
-      this.skyGfx.fillGradientStyle(cfg.bgColor, cfg.bgColor, dark, dark, 1);
+      this.skyGfx.fillGradientStyle(theme.skyTop, theme.skyTop, theme.skyBottom, theme.skyBottom, 1);
       this.skyGfx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    }
+    // 챕터가 바뀌었을 때만 달·산·안개·도깨비불 재구성 (스테이지 진행마다 재생성 방지)
+    if (this._themeChapter !== s.chapter) {
+      this._themeChapter = s.chapter;
+      this.buildThemedScenery(theme);
     }
   }
 
@@ -622,26 +622,18 @@ export default class GameScene extends Phaser.Scene {
     this.playerSprite.setDisplaySize(size[0], size[1]);
   }
 
-  /** 배경 야경: 하늘 그라데이션 + 큰 달(헤일로) + 반짝이는 별 + 3겹 산 + 안개 + 떠도는 도깨비불 */
+  /** 배경 야경 초기화: 하늘 그라데이션 + 별(테마 무관, 1회). 달·산·안개·도깨비불은 챕터 테마로 구성 */
   createBackground() {
     this.skyGfx = this.add.graphics().setDepth(-20);
+    this._scenery = []; // 챕터 테마로 재구성되는 원경 요소
+    this._themeChapter = -1;
 
-    // 달 — 부드러운 헤일로 + 본체 + 크레이터
-    const mx = GAME_WIDTH - 220;
-    const my = 128;
-    [[100, 0.05], [78, 0.09], [56, 0.15]].forEach(([r, a]) =>
-      this.add.circle(mx, my, r, 0xfff3bf, a).setDepth(-18));
-    this.add.circle(mx, my, 40, 0xfdf6d8, 1).setDepth(-17);
-    this.add.circle(mx + 11, my - 9, 8, 0xe9ddba, 0.5).setDepth(-16);
-    this.add.circle(mx - 10, my + 7, 5.5, 0xe9ddba, 0.45).setDepth(-16);
-    this.add.circle(mx + 5, my + 13, 4, 0xe9ddba, 0.4).setDepth(-16);
-
-    // 별 — 크기·밝기 다양 + 일부 반짝임
+    // 별 — 크기·밝기 다양 + 일부 반짝임 (테마 무관 공통)
     for (let i = 0; i < 66; i += 1) {
       const x = Phaser.Math.Between(16, GAME_WIDTH - 16);
       const y = Phaser.Math.Between(16, GAME_HEIGHT * 0.56);
       const s = Phaser.Math.FloatBetween(0.6, 1.9);
-      const star = this.add.circle(x, y, s, 0xffffff, Phaser.Math.FloatBetween(0.35, 0.95)).setDepth(-18);
+      const star = this.add.circle(x, y, s, 0xffffff, Phaser.Math.FloatBetween(0.35, 0.95)).setDepth(-19);
       if (Math.random() < 0.4) {
         this.tweens.add({
           targets: star, alpha: 0.12, duration: Phaser.Math.Between(1300, 2800),
@@ -649,22 +641,47 @@ export default class GameScene extends Phaser.Scene {
         });
       }
     }
+  }
 
-    // 지평선 안개 밴드 (원경 흐림)
+  /** 챕터 테마로 원경 요소(달·산·안개·도깨비불) 재구성 */
+  buildThemedScenery(theme) {
+    if (this._scenery) {
+      this._scenery.forEach((o) => {
+        this.tweens.killTweensOf(o);
+        if (o.active) o.destroy();
+      });
+    }
+    this._scenery = [];
+    const keep = (o) => {
+      this._scenery.push(o);
+      return o;
+    };
+
+    // 달 — 헤일로 + 본체 + 크레이터
+    const mx = GAME_WIDTH - 220;
+    const my = 128;
+    [[100, 0.05], [78, 0.09], [56, 0.15]].forEach(([r, a]) =>
+      keep(this.add.circle(mx, my, r, theme.moonGlow, a).setDepth(-18)));
+    keep(this.add.circle(mx, my, 40, theme.moon, 1).setDepth(-17));
+    keep(this.add.circle(mx + 11, my - 9, 8, 0x000000, 0.12).setDepth(-16));
+    keep(this.add.circle(mx - 10, my + 7, 5.5, 0x000000, 0.1).setDepth(-16));
+    keep(this.add.circle(mx + 5, my + 13, 4, 0x000000, 0.09).setDepth(-16));
+
+    // 지평선 안개
     const horizon = GAME_HEIGHT - 90;
-    const fog = this.add.graphics().setDepth(-15);
-    fog.fillGradientStyle(0x39456e, 0x39456e, 0x39456e, 0x39456e, 0, 0, 0.3, 0.3);
+    const fog = keep(this.add.graphics().setDepth(-15));
+    fog.fillGradientStyle(theme.fog, theme.fog, theme.fog, theme.fog, 0, 0, 0.3, 0.3);
     fog.fillRect(0, horizon - 46, GAME_WIDTH, 130);
 
-    // 산 실루엣 — 3겹 (원경=옅음 → 근경=짙음)으로 깊이감
-    const ranges = [
-      { color: 0x2b3352, base: horizon + 6, peaks: [[-50, 90], [240, 170], [560, 110], [900, 190], [1330, 120]] },
-      { color: 0x1e2540, base: horizon + 38, peaks: [[-50, 70], [180, 150], [500, 100], [820, 175], [1150, 110], [1330, 150]] },
-      { color: 0x141a30, base: horizon + 74, peaks: [[-50, 50], [120, 120], [420, 80], [700, 140], [1000, 90], [1280, 130]] },
+    // 산 3겹 (원경→근경) — 형태는 고정, 색만 테마
+    const LAYERS = [
+      { base: horizon + 6, peaks: [[-50, 90], [240, 170], [560, 110], [900, 190], [1330, 120]] },
+      { base: horizon + 38, peaks: [[-50, 70], [180, 150], [500, 100], [820, 175], [1150, 110], [1330, 150]] },
+      { base: horizon + 74, peaks: [[-50, 50], [120, 120], [420, 80], [700, 140], [1000, 90], [1280, 130]] },
     ];
-    ranges.forEach((r, i) => {
-      const g = this.add.graphics().setDepth(-16 + i);
-      g.fillStyle(r.color, 1);
+    LAYERS.forEach((r, i) => {
+      const g = keep(this.add.graphics().setDepth(-16 + i));
+      g.fillStyle(theme.mountains[i], 1);
       g.beginPath();
       g.moveTo(-50, r.base);
       r.peaks.forEach(([px, ph]) => g.lineTo(px, r.base - ph));
@@ -675,14 +692,13 @@ export default class GameScene extends Phaser.Scene {
       g.fillPath();
     });
 
-    // 떠도는 도깨비불 (분위기 파티클) — 천천히 이동 + 은은한 명멸
-    const spiritColors = [0x74e0c0, 0x9ad0ff, 0xc9b6ff, 0xa8e6a0];
+    // 떠도는 도깨비불
     for (let i = 0; i < 6; i += 1) {
       const x = Phaser.Math.Between(120, GAME_WIDTH - 120);
       const y = Phaser.Math.Between(Math.round(GAME_HEIGHT * 0.42), Math.round(GAME_HEIGHT * 0.72));
-      const col = spiritColors[i % spiritColors.length];
-      const glow = this.add.circle(x, y, Phaser.Math.Between(8, 12), col, 0.16).setDepth(-13);
-      const orb = this.add.circle(x, y, Phaser.Math.FloatBetween(2.4, 3.8), col, 0.85).setDepth(-13);
+      const col = theme.spirits[i % theme.spirits.length];
+      const glow = keep(this.add.circle(x, y, Phaser.Math.Between(8, 12), col, 0.16).setDepth(-13));
+      const orb = keep(this.add.circle(x, y, Phaser.Math.FloatBetween(2.4, 3.8), col, 0.85).setDepth(-13));
       this.tweens.add({
         targets: [orb, glow], x: x + Phaser.Math.Between(-140, 140), y: y + Phaser.Math.Between(-70, 70),
         duration: Phaser.Math.Between(6000, 11000), yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
